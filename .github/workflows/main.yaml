@@ -1,0 +1,38 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.x'
+      - name: Set Environment Variables
+        run: |
+          echo "APP_NAME=${GITHUB_REPOSITORY##*/}" >> $GITHUB_ENV
+          echo "OS_PLATFORM=$(uname -s)" >> $GITHUB_ENV
+          echo "OS_RELEASE=$(uname -r)" >> $GITHUB_ENV
+          echo "OS_VERSION=$(uname -v)" >> $GITHUB_ENV
+          echo "BUILD_NAME=$GITHUB_WORKFLOW" >> $GITHUB_ENV
+          echo "BUILD_NUMBER=$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test
+      - run: npm run lint-check
+      - run: npm run format-check
+
+      # - name: Upload report as artifact
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: ctrf-report
+      #     path: ctrf/ctrf-report.json
