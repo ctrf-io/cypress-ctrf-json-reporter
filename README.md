@@ -40,7 +40,7 @@ CTRF is a universal JSON test report schema that addresses the lack of a standar
         "name": "ctrf should generate the same report with any tool",
         "status": "passed",
         "duration": 100
-      },
+      }
     ],
     "environment": {
       "appName": "MyApp",
