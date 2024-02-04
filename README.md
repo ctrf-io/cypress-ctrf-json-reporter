@@ -109,17 +109,17 @@ The reporter supports several configuration options:
 
 ```javascript
 GenerateCtrfReport({
-        on, {
-              outputFile: 'custom-name.json', // Optional: Output file name. Defaults to 'ctrf-report.json'.
-              outputDir: 'custom-directory',  // Optional: Output directory path. Defaults to 'ctrf'.
-              appName: 'MyApp',               // Optional: Specify the name of the application under test.
-              appVersion: '1.0.0',            // Optional: Specify the version of the application under test.
-              osPlatform: 'linux',            // Optional: Specify the OS platform.
-              osRelease: '18.04',             // Optional: Specify the OS release version.
-              osVersion: '5.4.0',             // Optional: Specify the OS version.
-              buildName: 'MyApp Build',       // Optional: Specify the build name.
-              buildNumber: '100',             // Optional: Specify the build number.
-            }
+  on, {
+    outputFile: 'custom-name.json', // Optional: Output file name. Defaults to 'ctrf-report.json'.
+    outputDir: 'custom-directory',  // Optional: Output directory path. Defaults to 'ctrf'.
+    appName: 'MyApp',               // Optional: Specify the name of the application under test.
+    appVersion: '1.0.0',            // Optional: Specify the version of the application under test.
+    osPlatform: 'linux',            // Optional: Specify the OS platform.
+    osRelease: '18.04',             // Optional: Specify the OS release version.
+    osVersion: '5.4.0',             // Optional: Specify the OS version.
+    buildName: 'MyApp Build',       // Optional: Specify the build name.
+    buildNumber: '100',             // Optional: Specify the build number.
+  }
 })
 
 ```
@@ -133,3 +133,5 @@ The test object in the report includes the following [CTRF properties](https://c
 | `name`     | String | Required | The name of the test.                                                               |
 | `status`   | String | Required | The outcome of the test. One of: `passed`, `failed`, `skipped`, `pending`, `other`. |
 | `duration` | Number | Required | The time taken for the test execution, in milliseconds.                             |
+| `message`  | String | Optional | The failure message if the test failed.                                             |
+| `trace`    | String | Optional | The stack trace captured if the test failed.                                        |

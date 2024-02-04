@@ -7,6 +7,7 @@ import {
   type CtrfTest,
 } from '../types/ctrf'
 import {
+  type TestAttempt,
   type CypressAfterRun,
   type CypressAfterSpecResults,
   type CypressAfterSpecSpec,
@@ -135,19 +136,26 @@ export class GenerateCtrfReport {
   private updateCtrfResultsFromAfterSpecResults(
     cypressResults: CypressAfterSpecResults
   ): void {
-    cypressResults.tests.forEach((t: CypressTest) => {
+    cypressResults.tests.forEach((test: CypressTest) => {
+      const latestAttempt = test.attempts?.[test.attempts.length - 1]
       const durationValue =
-        typeof t.duration === 'number'
-          ? t.duration
-          : t.attempts?.[t.attempts.length - 1]?.wallClockDuration ?? 0
+        typeof test.duration === 'number'
+          ? test.duration
+          : latestAttempt?.wallClockDuration ?? 0
 
-      const test: CtrfTest = {
-        name: t.title.join(' '),
-        status: t.state,
+      const ctrfTest: CtrfTest = {
+        name: test.title.join(' '),
+        status: test.state,
         duration: durationValue,
       }
 
-      this.ctrfReport.results.tests.push(test)
+      if (test.state === 'failed') {
+        const failureDetails = this.extractFailureDetails(test, latestAttempt)
+        ctrfTest.message = failureDetails.message
+        ctrfTest.trace = failureDetails.trace
+      }
+
+      this.ctrfReport.results.tests.push(ctrfTest)
     })
   }
 
@@ -191,6 +199,30 @@ export class GenerateCtrfReport {
 
   hasEnvironmentDetails(environment: CtrfEnvironment): boolean {
     return Object.keys(environment).length > 0
+  }
+
+  extractFailureDetails(
+    testResult: CypressTest,
+    lastAttempt?: TestAttempt
+  ): Partial<CtrfTest> {
+    const failureDetails: Partial<CtrfTest> = {}
+
+    if (
+      lastAttempt?.error !== undefined &&
+      'message' in lastAttempt.error &&
+      'stack' in lastAttempt.error
+    ) {
+      failureDetails.message = lastAttempt.error.message
+      failureDetails.trace = lastAttempt.error.stack
+    } else if (
+      typeof testResult.displayError === 'string' &&
+      testResult.displayError.trim().length > 0
+    ) {
+      failureDetails.message = testResult.displayError
+      failureDetails.trace = testResult.displayError
+    }
+
+    return failureDetails
   }
 
   private writeReportToFile(data: CtrfReport): void {
