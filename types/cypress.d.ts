@@ -75,7 +75,7 @@ export interface ReporterStats {
 
 export interface TestAttempt {
   state: CypressTestState
-  error: CypressTestError
+  error?: CypressTestError
   wallClockDuration?: number
 }
 
