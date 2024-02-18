@@ -1,4 +1,5 @@
-# Cypress JSON Reporter
+# Cypress JSON Test Results Report
+
 
 A Cypress JSON test reporter to create test reports that follow the CTRF standard.
 
@@ -61,7 +62,7 @@ Add the reporter to your cypress.config.js/ts file:
 
 ```javascript
 const { defineConfig } = require('cypress')
-const { generateCypressCtrfJsonReport } = require('cypress-ctrf-json-report')
+const { generateCtrfJsonReport } = require('cypress-ctrf-json-report')
 
 module.exports = defineConfig({
   e2e: {
@@ -88,7 +89,7 @@ You'll find a JSON file named `ctrf-report.json` in the `ctrf` directory.
 Add the reporter to your cypress/plugins/index.js/ts
 
 ```javascript
-const { generateCypressCtrfJsonReport } = require('cypress-ctrf-json-report')
+const { generateCtrfJsonReport } = require('cypress-ctrf-json-report')
 
 /// <reference types="cypress" />
 
