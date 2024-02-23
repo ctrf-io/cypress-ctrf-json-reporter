@@ -12,6 +12,7 @@ import {
   type CypressAfterSpecResults,
   type CypressAfterSpecSpec,
   type CypressTest,
+  type Config,
 } from '../types/cypress'
 
 interface ReporterConfigOptions {
@@ -40,12 +41,15 @@ export class GenerateCtrfReport {
   runStart = 0
   runStop = 0
   filename = this.defaultOutputFile
+  browser = ''
 
   constructor(reporterOptions: ReporterConfigOptions) {
     this.reporterConfigOptions = {
       on: reporterOptions.on,
       outputFile: reporterOptions?.outputFile ?? this.defaultOutputFile,
       outputDir: reporterOptions?.outputDir ?? this.defaultOutputDir,
+      minimal: reporterOptions?.minimal ?? false,
+      testType: reporterOptions?.testType ?? 'e2e',
       appName: reporterOptions?.appName ?? undefined,
       appVersion: reporterOptions?.appVersion ?? undefined,
       osPlatform: reporterOptions?.osPlatform ?? undefined,
@@ -111,8 +115,9 @@ export class GenerateCtrfReport {
   }
 
   private setEventHandlers(): void {
-    this.reporterConfigOptions.on('before:run', () => {
+    this.reporterConfigOptions.on('before:run', (config: Config) => {
       this.runStart = Date.now()
+      this.browser = `${config.browser.name} ${config.browser.version}`
       this.setEnvironmentDetails(this.reporterConfigOptions ?? {})
       if (this.hasEnvironmentDetails(this.ctrfEnvironment)) {
         this.ctrfReport.results.environment = this.ctrfEnvironment
@@ -122,6 +127,9 @@ export class GenerateCtrfReport {
     this.reporterConfigOptions.on(
       'after:spec',
       (_spec: CypressAfterSpecSpec, results: CypressAfterSpecResults) => {
+        fs.writeFileSync('after-spec-results', JSON.stringify(results))
+        fs.writeFileSync('after-spec', JSON.stringify(_spec))
+
         this.updateCtrfResultsFromAfterSpecResults(results)
       }
     )
@@ -142,6 +150,8 @@ export class GenerateCtrfReport {
         typeof test.duration === 'number'
           ? test.duration
           : latestAttempt?.wallClockDuration ?? 0
+      const attemptsLength = test.attempts?.length ?? 0
+      const isFlaky = test.state === 'passed' && attemptsLength > 1
 
       const ctrfTest: CtrfTest = {
         name: test.title.join(' '),
@@ -149,19 +159,25 @@ export class GenerateCtrfReport {
         duration: durationValue,
       }
 
-      if (test.state === 'failed') {
-        const failureDetails = this.extractFailureDetails(test, latestAttempt)
-        ctrfTest.message = failureDetails.message
-        ctrfTest.trace = failureDetails.trace
+      if (this.reporterConfigOptions.minimal === false) {
+        if (test.state === 'failed') {
+          const failureDetails = this.extractFailureDetails(test, latestAttempt)
+          ctrfTest.message = failureDetails.message
+          ctrfTest.trace = failureDetails.trace
+        }
+        ctrfTest.rawStatus = test.state
+        ctrfTest.type = this.reporterConfigOptions.testType ?? 'e2e'
+        ctrfTest.filePath = cypressResults.spec?.relative
+        ctrfTest.retry = attemptsLength - 1
+        ctrfTest.flake = isFlaky
+        ctrfTest.browser = this.browser
       }
-
       this.ctrfReport.results.tests.push(ctrfTest)
     })
   }
 
   private updateCtrfTotalsFromAfterRun(run: CypressAfterRun): void {
     this.ctrfReport.results.summary = {
-      suites: run.totalSuites,
       tests: run.totalTests,
       failed: run.totalFailed,
       passed: run.totalPassed,

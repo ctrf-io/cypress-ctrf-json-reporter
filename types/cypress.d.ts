@@ -102,7 +102,7 @@ interface BrowserInfo {
   version: string
 }
 
-interface Config {
+export interface Config {
   projectRoot: string
   projectName: string
   configFile: string
