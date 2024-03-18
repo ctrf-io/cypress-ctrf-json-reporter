@@ -145,3 +145,7 @@ The test object in the report includes the following [CTRF properties](https://c
 | `retry`     | Number  | Optional | The number of retries attempted for the test.                                       |
 | `flake`     | Boolean | Optional | Indicates whether the test result is flaky.                                         |
 | `browser`   | String  | Optional | The browser used for the test.                                                      |
+
+## Support Us
+
+If you find this project useful, consider giving it a GitHub star ⭐ It means a lot to us.
