@@ -28,8 +28,10 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run test
-      - name: Publish Test Results
+      - name: Publish Test Results summary
         run: npx github-actions-ctrf summary ctrf/ctrf-report.json
+      - name: Publish Test Results test details
+        run: npx github-actions-ctrf tests ctrf/ctrf-report.json
       - run: npm run lint-check
       - run: npm run format-check
 
