@@ -30,8 +30,14 @@ jobs:
       - run: npm run test
       - name: Publish Test Results summary
         run: npx github-actions-ctrf summary ctrf/ctrf-report.json
-      - name: Publish Test Results test details
+      - name: Publish CTRF Failed Test Summary Results
+        run: npx github-actions-ctrf failed ctrf/ctrf-report.json
+      - name: Publish CTRF Flake Test Summary Results
+        run: npx github-actions-ctrf flake ctrf/ctrf-report.json
+      - name: Publish CTRF Detailed Test Summary Results
         run: npx github-actions-ctrf tests ctrf/ctrf-report.json
+      - name: Annotate failed tests
+        run: npx github-actions-ctrf annotate ctrf/ctrf-report.json
       - run: npm run lint-check
       - run: npm run format-check
 
