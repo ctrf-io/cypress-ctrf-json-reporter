@@ -168,8 +168,8 @@ export class GenerateCtrfReport {
         ctrfTest.rawStatus = test.state
         ctrfTest.type = this.reporterConfigOptions.testType ?? 'e2e'
         ctrfTest.filePath = cypressResults.spec?.relative
-        ctrfTest.retry = attemptsLength - 1
-        ctrfTest.flake = isFlaky
+        ctrfTest.retries = attemptsLength - 1
+        ctrfTest.flaky = isFlaky
         ctrfTest.browser = this.browser
       }
       this.ctrfReport.results.tests.push(ctrfTest)

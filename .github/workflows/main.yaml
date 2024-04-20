@@ -32,8 +32,8 @@ jobs:
         run: npx github-actions-ctrf summary ctrf/ctrf-report.json
       - name: Publish CTRF Failed Test Summary Results
         run: npx github-actions-ctrf failed ctrf/ctrf-report.json
-      - name: Publish CTRF Flake Test Summary Results
-        run: npx github-actions-ctrf flake ctrf/ctrf-report.json
+      - name: Publish CTRF Flaky Test Summary Results
+        run: npx github-actions-ctrf flaky ctrf/ctrf-report.json
       - name: Publish CTRF Detailed Test Summary Results
         run: npx github-actions-ctrf tests ctrf/ctrf-report.json
       - name: Annotate failed tests

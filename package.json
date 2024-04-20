@@ -1,6 +1,6 @@
 {
   "name": "cypress-ctrf-json-reporter",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -11,6 +11,7 @@
     "format": "prettier --write .",
     "format-check": "prettier --check ."
   },
+  "repository": "github:ctrf-io/cypress-ctrf-json-report",
   "files": [
     "dist/",
     "README.md"

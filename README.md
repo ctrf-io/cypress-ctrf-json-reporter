@@ -143,11 +143,11 @@ The test object in the report includes the following [CTRF properties](https://c
 | `duration`  | Number  | Required | The time taken for the test execution, in milliseconds.                             |
 | `message`   | String  | Optional | The failure message if the test failed.                                             |
 | `trace`     | String  | Optional | The stack trace captured if the test failed.                                        |
-| `rawStatus` | String  | Optional | The original playwright status of the test before mapping to CTRF status.           |
+| `rawStatus` | String  | Optional | The original cypress status of the test before mapping to CTRF status.           |
 | `type`      | String  | Optional | The type of test (e.g., `api`, `e2e`).                                              |
 | `filepath`  | String  | Optional | The file path where the test is located in the project.                             |
-| `retry`     | Number  | Optional | The number of retries attempted for the test.                                       |
-| `flake`     | Boolean | Optional | Indicates whether the test result is flaky.                                         |
+| `retries`     | Number  | Optional | The number of retries attempted for the test.                                       |
+| `flaky`     | Boolean | Optional | Indicates whether the test result is flaky.                                         |
 | `browser`   | String  | Optional | The browser used for the test.                                                      |
 
 ## Support Us
