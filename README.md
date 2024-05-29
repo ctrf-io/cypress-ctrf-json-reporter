@@ -94,7 +94,7 @@ You'll find a JSON file named `ctrf-report.json` in the `ctrf` directory.
 Add the reporter to your cypress/plugins/index.js/ts
 
 ```javascript
-const { GenerateCtrfReport } = require('cypress-ctrf-json-reporter');
+const { GenerateCtrfReport } = require('cypress-ctrf-json-reporter')
 
 /// <reference types="cypress" />
 
@@ -105,7 +105,7 @@ const { GenerateCtrfReport } = require('cypress-ctrf-json-reporter');
 module.exports = (on, config) => {
   new GenerateCtrfReport({
     on,
-  });
+  })
 }
 ```
 
