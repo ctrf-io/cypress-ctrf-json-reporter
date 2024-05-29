@@ -67,13 +67,13 @@ Add the reporter to your cypress.config.js/ts file:
 
 ```javascript
 const { defineConfig } = require('cypress')
-const { generateCtrfJsonReport } = require('cypress-ctrf-json-report')
+const { GenerateCtrfReport } = require('cypress-ctrf-json-reporter')
 
 module.exports = defineConfig({
   e2e: {
     setupNodeEvents(on, config) {
       // Implement node event listeners here
-      GenerateCtrfReport({
+      new GenerateCtrfReport({
         on,
       })
     },
@@ -94,7 +94,7 @@ You'll find a JSON file named `ctrf-report.json` in the `ctrf` directory.
 Add the reporter to your cypress/plugins/index.js/ts
 
 ```javascript
-const { generateCtrfJsonReport } = require('cypress-ctrf-json-report')
+const { GenerateCtrfReport } = require('cypress-ctrf-json-reporter');
 
 /// <reference types="cypress" />
 
@@ -103,9 +103,9 @@ const { generateCtrfJsonReport } = require('cypress-ctrf-json-report')
  */
 // eslint-disable-next-line no-unused-vars
 module.exports = (on, config) => {
-  GenerateCtrfReport({
+  new GenerateCtrfReport({
     on,
-  })
+  });
 }
 ```
 
@@ -114,7 +114,7 @@ module.exports = (on, config) => {
 The reporter supports several configuration options:
 
 ```javascript
-GenerateCtrfReport({
+new GenerateCtrfReport({
   on, {
     outputFile: 'custom-name.json', // Optional: Output file name. Defaults to 'ctrf-report.json'.
     outputDir: 'custom-directory',  // Optional: Output directory path. Defaults to 'ctrf'.
