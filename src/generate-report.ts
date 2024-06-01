@@ -127,9 +127,6 @@ export class GenerateCtrfReport {
     this.reporterConfigOptions.on(
       'after:spec',
       (_spec: CypressAfterSpecSpec, results: CypressAfterSpecResults) => {
-        fs.writeFileSync('after-spec-results', JSON.stringify(results))
-        fs.writeFileSync('after-spec', JSON.stringify(_spec))
-
         this.updateCtrfResultsFromAfterSpecResults(results)
       }
     )
