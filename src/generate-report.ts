@@ -248,6 +248,7 @@ export class GenerateCtrfReport {
 
     if (
       lastAttempt?.error !== undefined &&
+      lastAttempt?.error !== null &&
       'message' in lastAttempt.error &&
       'stack' in lastAttempt.error
     ) {
