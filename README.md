@@ -6,9 +6,14 @@ A Cypress JSON test reporter to create test reports that follow the CTRF standar
 
 [Common Test Report Format](https://ctrf.io) ensures the generation of uniform JSON test reports, independent of programming languages or test framework in use.
 
-## Help us grow CTRF
+# **⭐⭐ If you find this project useful, consider giving it a GitHub star ⭐⭐**
 
-⭐ **If you find this project useful, please consider following the [CTRF organisation](https://github.com/ctrf-io) and giving this repository a star** ⭐
+## Help grow CTRF
+
+You can help grow CTRF by doing the following:
+
+- Follow the [CTRF organisation](https://github.com/ctrf-io)
+- Give this repository a star ⭐
 
 **It means a lot to us and helps us grow this open source library.**
 
@@ -135,6 +140,67 @@ new GenerateCtrfReport({
   branchName: 'main', // Optional: Specify the branch name.
   testEnvironment: 'staging', // Optional: Specify the test environment (e.g. staging, production).
 })
+```
+
+## Handling Multiple Plugins in Cypress
+
+Cypress's plugin system allows you to extend its functionality by adding event listeners to various lifecycle events like before:run, after:run, etc. However, a limitation in the Cypress plugin system is that it only supports one listener per event. This means that if you register multiple plugins that listen to the same event, the last registered plugin will override any previous ones.
+
+This can cause issues when using multiple reporting plugins with cypress-ctrf-json-reporter as only one of them will actually execute its event handler.
+
+To overcome this limitation, you can use a custom function to manage multiple event listeners for the same event, ensuring that all plugins work together seamlessly.
+
+Follow the steps below to ensure that cypress-ctrf-json-reporter and other plugins work together without conflict.
+
+### Step 1: Create a Custom initPlugins Function
+
+In your Cypress configuration file (usually cypress.config.js), create a utility function to handle multiple plugins:
+
+```javascript
+function initPlugins(on, plugins) {
+  const eventCallbacks = {};
+
+  const customOn = (eventName, callback) => {
+    if (!eventCallbacks[eventName]) {
+      eventCallbacks[eventName] = [];
+      // Register a single handler for each event that will execute all registered callbacks
+      on(eventName, async (...args) => {
+        for (const cb of eventCallbacks[eventName]) {
+          await cb(...args);
+        }
+      });
+    }
+    eventCallbacks[eventName].push(callback);
+  };
+
+  // Initialize each plugin with the custom `on` handler
+  plugins.forEach(plugin => plugin(customOn));
+}
+```
+
+This function ensures that multiple event listeners for the same event are preserved and called in sequence, allowing multiple plugins to function together.
+
+### Step 2: Modify Your Cypress Configuration
+
+Use the initPlugins function to initialize your plugins, including cypress-ctrf-json-reporter. Here is an example using CTRF and the popular mochaawesome plugin:
+
+```javascript
+const { defineConfig } = require('cypress');
+const { GenerateCtrfReport } = require('cypress-ctrf-json-reporter');
+const mochawesome = require('cypress-mochawesome-reporter/plugin');
+
+module.exports = defineConfig({
+  reporter: "cypress-mochawesome-reporter",
+  e2e: {
+    setupNodeEvents(on, config) {
+      // Initialize both plugins with the custom `on` handler
+      initPlugins(on, [
+        (on) => mochawesome(on),
+        (on) => new GenerateCtrfReport({ on }),
+      ]);
+    },
+  },
+});
 ```
 
 ## Test Object Properties
