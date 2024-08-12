@@ -158,23 +158,23 @@ In your Cypress configuration file (usually cypress.config.js), create a utility
 
 ```javascript
 function initPlugins(on, plugins) {
-  const eventCallbacks = {};
+  const eventCallbacks = {}
 
   const customOn = (eventName, callback) => {
     if (!eventCallbacks[eventName]) {
-      eventCallbacks[eventName] = [];
+      eventCallbacks[eventName] = []
       // Register a single handler for each event that will execute all registered callbacks
       on(eventName, async (...args) => {
         for (const cb of eventCallbacks[eventName]) {
-          await cb(...args);
+          await cb(...args)
         }
-      });
+      })
     }
-    eventCallbacks[eventName].push(callback);
-  };
+    eventCallbacks[eventName].push(callback)
+  }
 
   // Initialize each plugin with the custom `on` handler
-  plugins.forEach(plugin => plugin(customOn));
+  plugins.forEach((plugin) => plugin(customOn))
 }
 ```
 
@@ -185,22 +185,22 @@ This function ensures that multiple event listeners for the same event are prese
 Use the initPlugins function to initialize your plugins, including cypress-ctrf-json-reporter. Here is an example using CTRF and the popular mochaawesome plugin:
 
 ```javascript
-const { defineConfig } = require('cypress');
-const { GenerateCtrfReport } = require('cypress-ctrf-json-reporter');
-const mochawesome = require('cypress-mochawesome-reporter/plugin');
+const { defineConfig } = require('cypress')
+const { GenerateCtrfReport } = require('cypress-ctrf-json-reporter')
+const mochawesome = require('cypress-mochawesome-reporter/plugin')
 
 module.exports = defineConfig({
-  reporter: "cypress-mochawesome-reporter",
+  reporter: 'cypress-mochawesome-reporter',
   e2e: {
     setupNodeEvents(on, config) {
       // Initialize both plugins with the custom `on` handler
       initPlugins(on, [
         (on) => mochawesome(on),
         (on) => new GenerateCtrfReport({ on }),
-      ]);
+      ])
     },
   },
-});
+})
 ```
 
 ## Test Object Properties
