@@ -6,16 +6,28 @@ A Cypress JSON test reporter to create test reports that follow the CTRF standar
 
 [Common Test Report Format](https://ctrf.io) ensures the generation of uniform JSON test reports, independent of programming languages or test framework in use.
 
-# **⭐⭐ If you find this project useful, consider giving it a GitHub star ⭐⭐**
+<div align="center">
+<div style="padding: 1.5rem; border-radius: 8px; margin: 1rem 0; border: 1px solid #30363d;">
+<span style="font-size: 23px;">💚</span>
+<h3 style="margin: 1rem 0;">CTRF tooling is open source and free to use</h3>
+<p style="font-size: 16px;">Support the project by giving it a follow and a star ⭐</p>
 
-## Help grow CTRF
+<div style="margin-top: 1.5rem;">
+<a href="https://github.com/ctrf-io/wdio-ctrf-json-reporter">
+<img src="https://img.shields.io/github/stars/ctrf-io/wdio-ctrf-json-reporter?style=for-the-badge&color=2ea043" alt="GitHub stars">
+</a>
+<a href="https://github.com/ctrf-io">
+<img src="https://img.shields.io/github/followers/ctrf-io?style=for-the-badge&color=2ea043" alt="GitHub followers">
+</a>
+</div>
+</div>
 
-You can help grow CTRF by doing the following:
-
-- Follow the [CTRF organisation](https://github.com/ctrf-io)
-- Give this repository a star ⭐
-
-**It means a lot to us and helps us grow this open source library.**
+<p style="font-size: 14px; margin: 1rem 0;">
+Maintained by <a href="https://github.com/ma11hewthomas">Matthew Thomas</a><br/>
+Contributions are very welcome! <br/>
+Explore more <a href="https://www.ctrf.io/integrations">integrations</a>
+</p>
+</div>
 
 ## Features
 
