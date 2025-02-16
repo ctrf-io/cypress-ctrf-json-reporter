@@ -13,8 +13,8 @@ A Cypress JSON test reporter to create test reports that follow the CTRF standar
 <p style="font-size: 16px;">Support the project by giving it a follow and a star ⭐</p>
 
 <div style="margin-top: 1.5rem;">
-<a href="https://github.com/ctrf-io/wdio-ctrf-json-reporter">
-<img src="https://img.shields.io/github/stars/ctrf-io/wdio-ctrf-json-reporter?style=for-the-badge&color=2ea043" alt="GitHub stars">
+<a href="https://github.com/ctrf-io/cypress-ctrf-json-reporter">
+<img src="https://img.shields.io/github/stars/ctrf-io/cypress-ctrf-json-reporter?style=for-the-badge&color=2ea043" alt="GitHub stars">
 </a>
 <a href="https://github.com/ctrf-io">
 <img src="https://img.shields.io/github/followers/ctrf-io?style=for-the-badge&color=2ea043" alt="GitHub followers">
