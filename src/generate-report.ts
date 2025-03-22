@@ -54,6 +54,7 @@ export class GenerateCtrfReport {
       outputFile: reporterOptions?.outputFile ?? this.defaultOutputFile,
       outputDir: reporterOptions?.outputDir ?? this.defaultOutputDir,
       minimal: reporterOptions?.minimal ?? false,
+      screenshot: reporterOptions?.screenshot ?? false,
       testType: reporterOptions?.testType ?? 'e2e',
       appName: reporterOptions?.appName ?? undefined,
       appVersion: reporterOptions?.appVersion ?? undefined,
@@ -178,6 +179,10 @@ export class GenerateCtrfReport {
         ctrfTest.retries = attemptsLength - 1
         ctrfTest.flaky = isFlaky
         ctrfTest.browser = this.browser
+        const screenshot = this.getScreenshot(test, cypressResults)
+        if (screenshot !== undefined) {
+          ctrfTest.screenshot = screenshot
+        }
       }
       this.ctrfReport.results.tests.push(ctrfTest)
     })
@@ -263,6 +268,43 @@ export class GenerateCtrfReport {
     }
 
     return failureDetails
+  }
+
+  private getScreenshot(
+    test: CypressTest,
+    results: CypressAfterSpecResults
+  ): string | undefined {
+    if (
+      this.reporterConfigOptions.screenshot !== false &&
+      results.screenshots !== undefined &&
+      results.screenshots.length > 0
+    ) {
+      let matchingScreenshot = results.screenshots.find(
+        (screenshot) =>
+          screenshot.path !== '' &&
+          screenshot.path.includes(test.title.join(' -- ')) &&
+          screenshot.path.includes('(failed)')
+      )
+
+      if (matchingScreenshot === undefined) {
+        const testScreenshots = results.screenshots.filter(
+          (screenshot) =>
+            screenshot.path !== '' &&
+            screenshot.path.includes(test.title.join(' -- '))
+        )
+        if (testScreenshots.length > 0) {
+          matchingScreenshot = testScreenshots[testScreenshots.length - 1]
+        }
+      }
+
+      if (matchingScreenshot !== undefined) {
+        const screenshotData = fs.readFileSync(matchingScreenshot.path, {
+          encoding: 'base64',
+        })
+        return screenshotData
+      }
+    }
+    return undefined
   }
 
   private writeReportToFile(data: CtrfReport): void {

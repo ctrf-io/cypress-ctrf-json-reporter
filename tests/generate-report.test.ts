@@ -201,4 +201,200 @@ describe('GenerateCtrfReport', () => {
       }
     )
   })
+
+  describe('getScreenshot', () => {
+    beforeEach(() => {
+      fs.readFileSync.mockClear()
+      fs.readFileSync.mockImplementation(
+        (path: string) => `base64-encoded-${path}`
+      )
+    })
+
+    it('should return undefined when screenshot option is false', () => {
+      reporter = new GenerateCtrfReport({
+        on: mockOn,
+        screenshot: false,
+      })
+
+      const test: CypressTest = {
+        title: ['Test', 'With Screenshot'],
+        state: 'passed',
+      }
+
+      const results = {
+        screenshots: [{ path: '/path/to/Test -- With Screenshot.png' }],
+      }
+
+      const screenshot = (reporter as any).getScreenshot(test, results)
+      expect(screenshot).toBeUndefined()
+    })
+
+    it('should return the failed screenshot when available', () => {
+      reporter = new GenerateCtrfReport({
+        on: mockOn,
+        screenshot: true,
+      })
+
+      const test: CypressTest = {
+        title: ['Test', 'With Failed Screenshot'],
+        state: 'failed',
+      }
+
+      const results = {
+        screenshots: [
+          { path: '/path/to/Test -- With Failed Screenshot (failed).png' },
+        ],
+      }
+
+      const screenshot = (reporter as any).getScreenshot(test, results)
+      expect(screenshot).toBe(
+        'base64-encoded-/path/to/Test -- With Failed Screenshot (failed).png'
+      )
+      expect(fs.readFileSync).toHaveBeenCalledWith(
+        '/path/to/Test -- With Failed Screenshot (failed).png',
+        { encoding: 'base64' }
+      )
+    })
+
+    it('should return the last screenshot when multiple exist for the same test', () => {
+      reporter = new GenerateCtrfReport({
+        on: mockOn,
+        screenshot: true,
+      })
+      const test: CypressTest = {
+        title: ['Test', 'With Multiple Screenshots'],
+        state: 'passed',
+      }
+
+      const results = {
+        screenshots: [
+          { path: '/path/to/Test -- With Multiple Screenshots (1).png' },
+          { path: '/path/to/Test -- With Multiple Screenshots (2).png' },
+          { path: '/path/to/Test -- With Multiple Screenshots (3).png' },
+        ],
+      }
+
+      const screenshot = (reporter as any).getScreenshot(test, results)
+      expect(screenshot).toBe(
+        'base64-encoded-/path/to/Test -- With Multiple Screenshots (3).png'
+      )
+      expect(fs.readFileSync).toHaveBeenCalledWith(
+        '/path/to/Test -- With Multiple Screenshots (3).png',
+        { encoding: 'base64' }
+      )
+    })
+
+    it('should prioritize failed screenshot when both failed and normal screenshots exist', () => {
+      reporter = new GenerateCtrfReport({
+        on: mockOn,
+        screenshot: true,
+      })
+      const test: CypressTest = {
+        title: ['Test', 'With Both Types'],
+        state: 'failed',
+      }
+
+      const results = {
+        screenshots: [
+          { path: '/path/to/Test -- With Both Types (1).png' },
+          { path: '/path/to/Test -- With Both Types (failed).png' },
+          { path: '/path/to/Test -- With Both Types (2).png' },
+        ],
+      }
+
+      const screenshot = (reporter as any).getScreenshot(test, results)
+      expect(screenshot).toBe(
+        'base64-encoded-/path/to/Test -- With Both Types (failed).png'
+      )
+      expect(fs.readFileSync).toHaveBeenCalledWith(
+        '/path/to/Test -- With Both Types (failed).png',
+        { encoding: 'base64' }
+      )
+    })
+
+    it('should return undefined when no screenshots match the test', () => {
+      reporter = new GenerateCtrfReport({
+        on: mockOn,
+        screenshot: true,
+      })
+      const test: CypressTest = {
+        title: ['Test', 'With No Matching Screenshots'],
+        state: 'passed',
+      }
+
+      const results = {
+        screenshots: [
+          { path: '/path/to/Different -- Test.png' },
+          { path: '/path/to/Another -- Different -- Test.png' },
+        ],
+      }
+
+      const screenshot = (reporter as any).getScreenshot(test, results)
+      expect(screenshot).toBeUndefined()
+      expect(fs.readFileSync).not.toHaveBeenCalled()
+    })
+
+    it('should return undefined when screenshots array is empty', () => {
+      reporter = new GenerateCtrfReport({
+        on: mockOn,
+        screenshot: true,
+      })
+      const test: CypressTest = {
+        title: ['Test'],
+        state: 'passed',
+      }
+
+      const results = {
+        screenshots: [],
+      }
+
+      const screenshot = (reporter as any).getScreenshot(test, results)
+      expect(screenshot).toBeUndefined()
+      expect(fs.readFileSync).not.toHaveBeenCalled()
+    })
+
+    it('should return undefined when screenshots is undefined', () => {
+      reporter = new GenerateCtrfReport({
+        on: mockOn,
+        screenshot: true,
+      })
+      const test: CypressTest = {
+        title: ['Test'],
+        state: 'passed',
+      }
+
+      const results = {}
+
+      const screenshot = (reporter as any).getScreenshot(test, results)
+      expect(screenshot).toBeUndefined()
+      expect(fs.readFileSync).not.toHaveBeenCalled()
+    })
+
+    it('should handle empty paths in screenshots array', () => {
+      reporter = new GenerateCtrfReport({
+        on: mockOn,
+        screenshot: true,
+      })
+      const test: CypressTest = {
+        title: ['Test', 'With Empty Path'],
+        state: 'passed',
+      }
+
+      const results = {
+        screenshots: [
+          { path: '' },
+          { path: '/path/to/Test -- With Empty Path.png' },
+        ],
+      }
+
+      const screenshot = (reporter as any).getScreenshot(test, results)
+      expect(screenshot).toBe(
+        'base64-encoded-/path/to/Test -- With Empty Path.png'
+      )
+      expect(fs.readFileSync).toHaveBeenCalledWith(
+        '/path/to/Test -- With Empty Path.png',
+        { encoding: 'base64' }
+      )
+    })
+  })
 })
