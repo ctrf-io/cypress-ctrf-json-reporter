@@ -66,16 +66,6 @@ Explore more <a href="https://www.ctrf.io/integrations">integrations</a>
 }
 ```
 
-## What is CTRF?
-
-CTRF is a universal JSON test report schema that addresses the lack of a standardized format for JSON test reports.
-
-**Consistency Across Tools:** Different testing tools and frameworks often produce reports in varied formats. CTRF ensures a uniform structure, making it easier to understand and compare reports, regardless of the testing tool used.
-
-**Language and Framework Agnostic:** It provides a universal reporting schema that works seamlessly with any programming language and testing framework.
-
-**Facilitates Better Analysis:** With a standardized format, programatically analyzing test outcomes across multiple platforms becomes more straightforward.
-
 ## Installation
 
 ```bash
@@ -278,6 +268,16 @@ The test object in the report includes the following [CTRF properties](https://c
 | `browser`     | String  | Optional | The browser used for the test.                                                      |
 | `screenshot`  | String  | Optional | The base-64 screenshot of the test.                                                 |
 | `attachments` | Array   | Optional | The attachments of the test.                                                        |
+
+## What is CTRF?
+
+CTRF is a universal JSON test report schema that addresses the lack of a standardized format for JSON test reports.
+
+**Consistency Across Tools:** Different testing tools and frameworks often produce reports in varied formats. CTRF ensures a uniform structure, making it easier to understand and compare reports, regardless of the testing tool used.
+
+**Language and Framework Agnostic:** It provides a universal reporting schema that works seamlessly with any programming language and testing framework.
+
+**Facilitates Better Analysis:** With a standardized format, programatically analyzing test outcomes across multiple platforms becomes more straightforward.
 
 ## Support Us
 
