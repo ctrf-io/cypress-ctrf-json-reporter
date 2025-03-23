@@ -45,4 +45,3 @@ jobs:
           report-path: './ctrf/*.json'
           pull-request-report: true
         if: always()
-      
