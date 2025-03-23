@@ -2,6 +2,7 @@ import fs = require('fs')
 import path = require('path')
 
 import {
+  type CtrfAttachment,
   type CtrfEnvironment,
   type CtrfReport,
   type CtrfTest,
@@ -179,9 +180,17 @@ export class GenerateCtrfReport {
         ctrfTest.retries = attemptsLength - 1
         ctrfTest.flaky = isFlaky
         ctrfTest.browser = this.browser
-        const screenshot = this.getScreenshot(test, cypressResults)
-        if (screenshot !== undefined) {
+        const screenshot = this.getScreenshot(test, cypressResults, false)
+        if (screenshot !== undefined && typeof screenshot === 'string') {
           ctrfTest.screenshot = screenshot
+        }
+      }
+      const attachments = this.getAttachments(test, cypressResults)
+      if (attachments.length > 0) {
+        if (ctrfTest.attachments !== undefined) {
+          ctrfTest.attachments = [...ctrfTest.attachments, ...attachments]
+        } else {
+          ctrfTest.attachments = attachments
         }
       }
       this.ctrfReport.results.tests.push(ctrfTest)
@@ -272,39 +281,103 @@ export class GenerateCtrfReport {
 
   private getScreenshot(
     test: CypressTest,
-    results: CypressAfterSpecResults
-  ): string | undefined {
+    results: CypressAfterSpecResults,
+    returnAttachmentObjects: boolean = false
+  ): string | CtrfAttachment[] | undefined {
     if (
-      this.reporterConfigOptions.screenshot !== false &&
-      results.screenshots !== undefined &&
-      results.screenshots.length > 0
+      this.reporterConfigOptions.screenshot === false &&
+      !returnAttachmentObjects
     ) {
-      let matchingScreenshot = results.screenshots.find(
-        (screenshot) =>
-          screenshot.path !== '' &&
-          screenshot.path.includes(test.title.join(' -- ')) &&
-          screenshot.path.includes('(failed)')
-      )
+      return undefined
+    }
 
-      if (matchingScreenshot === undefined) {
-        const testScreenshots = results.screenshots.filter(
-          (screenshot) =>
-            screenshot.path !== '' &&
-            screenshot.path.includes(test.title.join(' -- '))
-        )
-        if (testScreenshots.length > 0) {
-          matchingScreenshot = testScreenshots[testScreenshots.length - 1]
-        }
-      }
+    if (results.screenshots === undefined || results.screenshots.length === 0) {
+      return undefined
+    }
 
-      if (matchingScreenshot !== undefined) {
+    const testScreenshots = results.screenshots.filter(
+      (screenshot) =>
+        screenshot.path !== undefined &&
+        screenshot.path !== '' &&
+        screenshot.path.includes(test.title.join(' -- '))
+    )
+
+    if (testScreenshots.length === 0) {
+      return undefined
+    }
+
+    if (returnAttachmentObjects) {
+      return testScreenshots.map((screenshot) => ({
+        name: 'screenshot',
+        contentType: 'image/png',
+        path: screenshot.path,
+      }))
+    }
+
+    let matchingScreenshot = testScreenshots.find((screenshot) =>
+      screenshot.path.includes('(failed)')
+    )
+
+    if (matchingScreenshot === undefined && testScreenshots.length > 0) {
+      matchingScreenshot = testScreenshots[testScreenshots.length - 1]
+    }
+
+    if (matchingScreenshot !== undefined) {
+      try {
         const screenshotData = fs.readFileSync(matchingScreenshot.path, {
           encoding: 'base64',
         })
         return screenshotData
+      } catch (error) {
+        console.warn(
+          `Error reading screenshot file ${matchingScreenshot.path}:`,
+          error
+        )
+        return undefined
       }
     }
+
     return undefined
+  }
+
+  private getAttachments(
+    test: CypressTest,
+    results: CypressAfterSpecResults
+  ): CtrfAttachment[] {
+    const attachments: CtrfAttachment[] = []
+
+    if (results.screenshots !== undefined && results.screenshots.length > 0) {
+      try {
+        const screenshots = this.getScreenshot(test, results, true)
+        if (screenshots !== undefined && Array.isArray(screenshots)) {
+          attachments.push(...screenshots)
+        }
+      } catch (error) {
+        console.error('Error processing screenshot attachments:', error)
+      }
+    }
+
+    if (
+      results.video !== undefined &&
+      results.video !== null &&
+      results.video.trim() !== ''
+    ) {
+      try {
+        if (fs.existsSync(results.video)) {
+          attachments.push({
+            name: 'video',
+            contentType: 'video/mp4',
+            path: results.video,
+          })
+        } else {
+          console.warn(`Video file not found: ${results.video}`)
+        }
+      } catch (error) {
+        console.warn('Error processing video attachment:', error)
+      }
+    }
+
+    return attachments
   }
 
   private writeReportToFile(data: CtrfReport): void {

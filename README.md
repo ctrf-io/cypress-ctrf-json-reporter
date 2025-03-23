@@ -215,23 +215,69 @@ module.exports = defineConfig({
 })
 ```
 
+## Screenshots
+
+Enable base-64 screenshots in your test report by setting the `screenshot` option to `true`.
+
+Supports only the default [Cypress screenshot naming convention](https://docs.cypress.io/api/commands/screenshot#Naming-conventions).
+
+Captures a single screenshot per test, prioritizing failed screenshots.
+
+Uses the following file structure:
+
+`{screenshotsFolder}/{adjustedSpecPath}/{testName} (failed).png`
+
+If no failed screenshots are found, the last captured screenshot for the test is used (if following the default naming convention).
+
+If no screenshots are available, the screenshot property is omitted from the report.
+
+base-64 screenshots can increase the size of the report significantly.
+
+Screenshot file paths are also included as attachments in the report as follows:
+
+```json
+"attachments": [
+  {
+    "name": "screenshot",
+    "contentType": "image/png",
+    "path": "/path/to/screenshot.png"
+  }
+]
+```
+
+## Video
+
+Videos are included as attachments in the report.
+
+```json
+"attachments": [
+  {
+    "name": "video",
+    "contentType": "video/mp4",
+    "path": "/path/to/video.mp4"
+  }
+]
+```
+
 ## Test Object Properties
 
 The test object in the report includes the following [CTRF properties](https://ctrf.io/docs/schema/test):
 
-| Name        | Type    | Required | Details                                                                             |
-| ----------- | ------- | -------- | ----------------------------------------------------------------------------------- |
-| `name`      | String  | Required | The name of the test.                                                               |
-| `status`    | String  | Required | The outcome of the test. One of: `passed`, `failed`, `skipped`, `pending`, `other`. |
-| `duration`  | Number  | Required | The time taken for the test execution, in milliseconds.                             |
-| `message`   | String  | Optional | The failure message if the test failed.                                             |
-| `trace`     | String  | Optional | The stack trace captured if the test failed.                                        |
-| `rawStatus` | String  | Optional | The original cypress status of the test before mapping to CTRF status.              |
-| `type`      | String  | Optional | The type of test (e.g., `api`, `e2e`).                                              |
-| `filepath`  | String  | Optional | The file path where the test is located in the project.                             |
-| `retries`   | Number  | Optional | The number of retries attempted for the test.                                       |
-| `flaky`     | Boolean | Optional | Indicates whether the test result is flaky.                                         |
-| `browser`   | String  | Optional | The browser used for the test.                                                      |
+| Name          | Type    | Required | Details                                                                             |
+| ------------- | ------- | -------- | ----------------------------------------------------------------------------------- |
+| `name`        | String  | Required | The name of the test.                                                               |
+| `status`      | String  | Required | The outcome of the test. One of: `passed`, `failed`, `skipped`, `pending`, `other`. |
+| `duration`    | Number  | Required | The time taken for the test execution, in milliseconds.                             |
+| `message`     | String  | Optional | The failure message if the test failed.                                             |
+| `trace`       | String  | Optional | The stack trace captured if the test failed.                                        |
+| `rawStatus`   | String  | Optional | The original cypress status of the test before mapping to CTRF status.              |
+| `type`        | String  | Optional | The type of test (e.g., `api`, `e2e`).                                              |
+| `filepath`    | String  | Optional | The file path where the test is located in the project.                             |
+| `retries`     | Number  | Optional | The number of retries attempted for the test.                                       |
+| `flaky`       | Boolean | Optional | Indicates whether the test result is flaky.                                         |
+| `browser`     | String  | Optional | The browser used for the test.                                                      |
+| `screenshot`  | String  | Optional | The base-64 screenshot of the test.                                                 |
+| `attachments` | Array   | Optional | The attachments of the test.                                                        |
 
 ## Support Us
 
