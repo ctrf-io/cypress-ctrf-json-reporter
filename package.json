@@ -1,6 +1,6 @@
 {
   "name": "cypress-ctrf-json-reporter",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "description": "Generate a common JSON test report for Cypress tests",
   "main": "dist/index.js",
   "scripts": {
@@ -9,15 +9,23 @@
     "lint": "eslint . --ext .ts --fix",
     "lint-check": "eslint . --ext .ts",
     "format": "prettier --write .",
-    "format-check": "prettier --check ."
+    "format-check": "prettier --check .",
+    "all": "npm run lint && npm run test && npm run build"
   },
-  "repository": "github:ctrf-io/cypress-ctrf-json-report",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ctrf-io/cypress-ctrf-json-reporter.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "files": [
     "dist/",
     "README.md"
   ],
-  "author": "",
-  "license": "ISC",
+  "author": "Matthew Thomas",
+  "license": "MIT",
   "devDependencies": {
     "@types/jest": "^29.5.6",
     "@types/node": "^20.8.7",
