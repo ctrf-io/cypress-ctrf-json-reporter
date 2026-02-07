@@ -6,6 +6,20 @@ A Cypress JSON test reporter to create test reports that follow the CTRF standar
 
 [Common Test Report Format](https://ctrf.io) ensures the generation of uniform JSON test reports, independent of programming languages or test framework in use.
 
+## CTRF Open Standard
+
+CTRF is a community-driven open standard for test reporting.
+
+By standardizing test results, reports can be validated, merged, compared, and analyzed consistently across languages and frameworks.
+
+- **CTRF Specification**: https://github.com/ctrf-io/ctrf  
+  The official specification defining the format and semantics
+- **Discussions**: https://github.com/orgs/ctrf-io/discussions  
+  Community forum for questions, ideas, and support
+
+> [!NOTE]  
+> ⭐ Starring the **CTRF specification repository** (https://github.com/ctrf-io/ctrf)
+> helps support the standard.
 
 ## Features
 
@@ -256,18 +270,3 @@ CTRF is a universal JSON test report schema that addresses the lack of a standar
 **Language and Framework Agnostic:** It provides a universal reporting schema that works seamlessly with any programming language and testing framework.
 
 **Facilitates Better Analysis:** With a standardized format, programatically analyzing test outcomes across multiple platforms becomes more straightforward.
-
-## CTRF Open Standard
-
-CTRF is a community-driven open standard for test reporting.
-
-By standardizing test results, reports can be validated, merged, compared, and analyzed consistently across languages and frameworks.
-
-- **CTRF Specification**: https://github.com/ctrf-io/ctrf  
-  The official specification defining the format and semantics
-- **Discussions**: https://github.com/orgs/ctrf-io/discussions  
-  Community forum for questions, ideas, and support
-
-> [!NOTE]  
-> ⭐ Starring the **CTRF specification repository** (https://github.com/ctrf-io/ctrf)
-> helps support the standard.
