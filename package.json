@@ -7,9 +7,9 @@
     "build": "tsc",
     "test": "jest",
     "lint": "eslint . --ext .ts --fix",
-    "lint-check": "eslint . --ext .ts",
+    "lint:check": "eslint . --ext .ts",
     "format": "prettier --write .",
-    "format-check": "prettier --check .",
+    "format:check": "prettier --check .",
     "all": "npm run lint && npm run test && npm run build"
   },
   "repository": {
@@ -25,8 +25,23 @@
     "dist/",
     "README.md"
   ],
-  "author": "Matthew Thomas",
+  "author": "Matthew Poulton-White",
   "license": "MIT",
+  "keywords": [
+    "ctrf",
+    "common-test-report-format",
+    "test-reporting",
+    "test-results",
+    "testing",
+    "json",
+    "ci",
+    "cypress",
+    "cypress-reporter"
+  ],
+  "security": {
+    "email": "security@ctrf.io",
+    "url": "https://github.com/ctrf-io/.github/blob/main/SECURITY.md"
+  },
   "devDependencies": {
     "@types/jest": "^29.5.6",
     "@types/node": "^20.8.7",
