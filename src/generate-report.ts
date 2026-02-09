@@ -158,7 +158,7 @@ export class GenerateCtrfReport {
       const durationValue =
         typeof test.duration === 'number'
           ? test.duration
-          : latestAttempt?.wallClockDuration ?? 0
+          : (latestAttempt?.wallClockDuration ?? 0)
       const attemptsLength = test.attempts?.length ?? 0
       const isFlaky = test.state === 'passed' && attemptsLength > 1
 
