@@ -16,6 +16,7 @@ import {
   type CypressTest,
   type Config,
 } from '../types/cypress'
+import { getCtrfRuntimeStore } from './plugin'
 
 interface ReporterConfigOptions {
   on: any
@@ -159,6 +160,9 @@ export class GenerateCtrfReport {
   private updateCtrfResultsFromAfterSpecResults(
     cypressResults: CypressAfterSpecResults
   ): void {
+    const specRelative = cypressResults.spec?.relative ?? ''
+    const runtimeStore = getCtrfRuntimeStore()
+
     cypressResults.tests.forEach((test: CypressTest) => {
       const latestAttempt = test.attempts?.[test.attempts.length - 1]
       const durationValue =
@@ -189,6 +193,17 @@ export class GenerateCtrfReport {
         const screenshot = this.getScreenshot(test, cypressResults, false)
         if (screenshot !== undefined && typeof screenshot === 'string') {
           ctrfTest.screenshot = screenshot
+        }
+
+        // Merge runtime metadata from final attempt
+        const finalAttemptIndex = attemptsLength - 1
+        const runtimeData = runtimeStore.getByTestIdentity(
+          specRelative,
+          test.title,
+          finalAttemptIndex
+        )
+        if (runtimeData) {
+          ctrfTest.extra = { ...(ctrfTest.extra ?? {}), ...runtimeData }
         }
       }
       const attachments = this.getAttachments(test, cypressResults)
