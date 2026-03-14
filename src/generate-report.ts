@@ -1,5 +1,6 @@
 import fs = require('fs')
 import path = require('path')
+import * as crypto from 'crypto'
 
 import {
   type CtrfAttachment,
@@ -71,6 +72,11 @@ export class GenerateCtrfReport {
       testEnvironment: reporterOptions?.testEnvironment ?? undefined,
     }
     this.ctrfReport = {
+      reportFormat: 'CTRF',
+      specVersion: '0.0.0',
+      reportId: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+      generatedBy: 'cypress-ctrf-json-reporter',
       results: {
         tool: {
           name: 'cypress',
