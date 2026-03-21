@@ -1,5 +1,5 @@
 import { GenerateCtrfReport } from '../src/generate-report'
-import { CtrfAttachment } from '../types/ctrf'
+import { type Attachment } from 'ctrf'
 import {
   CypressAfterRun,
   CypressTest,
@@ -567,7 +567,7 @@ describe('GenerateCtrfReport', () => {
       expect(attachments).toHaveLength(3) // Only the matching screenshots
 
       // Verify each attachment has the correct format
-      attachments.forEach((attachment: CtrfAttachment) => {
+      attachments.forEach((attachment: Attachment) => {
         expect(attachment).toHaveProperty('name', 'screenshot')
         expect(attachment).toHaveProperty('contentType', 'image/png')
         expect(attachment.path).toContain('Test -- Multiple Screenshots')
