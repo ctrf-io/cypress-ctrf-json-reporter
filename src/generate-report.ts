@@ -18,23 +18,6 @@ import {
 } from '../types/cypress'
 import { getCtrfRuntimeStore } from './plugin'
 
-// =============================================================================
-// Reporter-local type overrides
-//
-// These types extend or widen the canonical `ctrf` package types to preserve
-// backwards compatibility with the existing public API of this reporter.
-// Each deviation is tracked below for resolution at v1.
-//
-// ┌─────────────────────────┬──────────────────────┬────────────────────────────────────────┬──────────────────────────────────────────────────────┐
-// │ Field                   │ Canonical (ctrf pkg) │ This reporter                          │ v1 plan                                              │
-// ├─────────────────────────┼──────────────────────┼────────────────────────────────────────┼──────────────────────────────────────────────────────┤
-// │ ReporterConfigOptions   │ number               │ string | undefined                     │ Change config type to number; remove Number() cast.  │
-// │  .buildNumber           │ (Environment)        │ (cast to number internally via         │                                                      │
-// │                         │                      │  Number(reporterConfigOptions           │                                                      │
-// │                         │                      │  .buildNumber))                        │                                                      │
-// └─────────────────────────┴──────────────────────┴────────────────────────────────────────┴──────────────────────────────────────────────────────┘
-// =============================================================================
-
 type CypressTest_ = Omit<Test, 'suite'> & { suite?: string | string[] }
 type CypressResults = Omit<CTRFReport['results'], 'tests'> & {
   tests: CypressTest_[]
