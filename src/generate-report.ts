@@ -3,11 +3,11 @@ import path = require('path')
 import * as crypto from 'crypto'
 
 import {
-  type CtrfAttachment,
-  type CtrfEnvironment,
-  type CtrfReport,
-  type CtrfTest,
-} from '../types/ctrf'
+  type CTRFReport,
+  type Test,
+  type Environment,
+  type Attachment,
+} from 'ctrf'
 import {
   type TestAttempt,
   type CypressAfterRun,
@@ -17,6 +17,14 @@ import {
   type Config,
 } from '../types/cypress'
 import { getCtrfRuntimeStore } from './plugin'
+
+type CypressTest_ = Omit<Test, 'suite'> & { suite?: string | string[] }
+type CypressResults = Omit<CTRFReport['results'], 'tests'> & {
+  tests: CypressTest_[]
+}
+type CypressCTRFReport = Omit<CTRFReport, 'results'> & {
+  results: CypressResults
+}
 
 interface ReporterConfigOptions {
   on: any
@@ -40,8 +48,8 @@ interface ReporterConfigOptions {
 }
 
 export class GenerateCtrfReport {
-  private readonly ctrfReport: CtrfReport
-  readonly ctrfEnvironment: CtrfEnvironment
+  private readonly ctrfReport: CypressCTRFReport
+  readonly ctrfEnvironment: Environment
   readonly reporterConfigOptions: ReporterConfigOptions
   readonly reporterName = 'cypress-ctrf-json-reporter'
   readonly defaultOutputFile = 'ctrf-report.json'
@@ -172,7 +180,7 @@ export class GenerateCtrfReport {
       const attemptsLength = test.attempts?.length ?? 0
       const isFlaky = test.state === 'passed' && attemptsLength > 1
 
-      const ctrfTest: CtrfTest = {
+      const ctrfTest: CypressTest_ = {
         name: test.title.join(' '),
         status: test.state,
         duration: durationValue,
@@ -251,7 +259,10 @@ export class GenerateCtrfReport {
       this.ctrfEnvironment.buildName = reporterConfigOptions.buildName
     }
     if (reporterConfigOptions.buildNumber !== undefined) {
-      this.ctrfEnvironment.buildNumber = reporterConfigOptions.buildNumber
+      // TODO(v1): remove cast once buildNumber config type is changed to number.
+      this.ctrfEnvironment.buildNumber = Number(
+        reporterConfigOptions.buildNumber
+      )
     }
     if (reporterConfigOptions.buildUrl !== undefined) {
       this.ctrfEnvironment.buildUrl = reporterConfigOptions.buildUrl
@@ -271,15 +282,15 @@ export class GenerateCtrfReport {
     }
   }
 
-  hasEnvironmentDetails(environment: CtrfEnvironment): boolean {
+  hasEnvironmentDetails(environment: Environment): boolean {
     return Object.keys(environment).length > 0
   }
 
   extractFailureDetails(
     testResult: CypressTest,
     lastAttempt?: TestAttempt
-  ): Partial<CtrfTest> {
-    const failureDetails: Partial<CtrfTest> = {}
+  ): Partial<Test> {
+    const failureDetails: Partial<Test> = {}
 
     if (
       lastAttempt?.error !== undefined &&
@@ -304,7 +315,7 @@ export class GenerateCtrfReport {
     test: CypressTest,
     results: CypressAfterSpecResults,
     returnAttachmentObjects: boolean = false
-  ): string | CtrfAttachment[] | undefined {
+  ): string | Attachment[] | undefined {
     if (
       this.reporterConfigOptions.screenshot === false &&
       !returnAttachmentObjects
@@ -364,8 +375,8 @@ export class GenerateCtrfReport {
   private getAttachments(
     test: CypressTest,
     results: CypressAfterSpecResults
-  ): CtrfAttachment[] {
-    const attachments: CtrfAttachment[] = []
+  ): Attachment[] {
+    const attachments: Attachment[] = []
 
     if (results.screenshots !== undefined && results.screenshots.length > 0) {
       try {
@@ -401,7 +412,7 @@ export class GenerateCtrfReport {
     return attachments
   }
 
-  private writeReportToFile(data: CtrfReport): void {
+  private writeReportToFile(data: CypressCTRFReport): void {
     const filePath = path.join(
       this.reporterConfigOptions.outputDir ?? this.defaultOutputDir,
       this.reporterConfigOptions.outputFile ?? this.defaultOutputFile
