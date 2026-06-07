@@ -27,7 +27,10 @@
 import type { CtrfCypressMessage } from "./runtime";
 
 // Type for Cypress plugin events (minimal subset we need)
-type CypressPluginEvents = (action: "task", tasks: Record<string, (...args: any[]) => any>) => void;
+type CypressPluginEvents = (
+	action: "task",
+	tasks: Record<string, (...args: any[]) => any>,
+) => void;
 
 // Task name - must match the browser adapter
 export const CTRF_TASK_NAME = "__ctrf_runtime_message";
