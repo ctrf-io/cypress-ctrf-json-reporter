@@ -1,12 +1,12 @@
 {
-  "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
-    "strict": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "declaration": true,
-    "types": ["node", "jest"]
-  },
-  "include": ["src/**/*.ts"]
+	"compilerOptions": {
+		"target": "es6",
+		"module": "commonjs",
+		"strict": true,
+		"outDir": "./dist",
+		"rootDir": "./src",
+		"declaration": true,
+		"types": ["node", "jest"]
+	},
+	"include": ["src/**/*.ts"]
 }
