@@ -5,28 +5,35 @@ import type {
 	CypressTest,
 	CypressTestState,
 } from "../types/cypress";
-
-const fs = require("node:fs");
-
-jest.mock("fs");
+import { expect } from "expect";
+import fs = require("node:fs");
+import sinon from "sinon";
 
 describe("GenerateCtrfReport", () => {
 	let reporter: GenerateCtrfReport;
-	let mockOn: jest.Mock;
+	let mockOn: sinon.SinonStub;
+	let readFileSyncStub: sinon.SinonStub;
 
 	beforeEach(() => {
-		mockOn = jest.fn();
+		mockOn = sinon.stub();
+		sinon.stub(fs, "existsSync").returns(true);
+		sinon.stub(fs, "mkdirSync");
+		sinon.stub(fs, "writeFileSync");
+		readFileSyncStub = sinon.stub(fs, "readFileSync");
 		reporter = new GenerateCtrfReport({ on: mockOn });
-		fs.writeFileSync.mockClear();
+	});
+
+	afterEach(() => {
+		sinon.restore();
 	});
 
 	describe("Validation and events", () => {
 		it("should register listeners for after:spec", () => {
-			expect(mockOn).toHaveBeenCalledWith("after:spec", expect.any(Function));
+			sinon.assert.calledWith(mockOn, "after:spec", sinon.match.func);
 		});
 
 		it("should register listeners for after:run events", () => {
-			expect(mockOn).toHaveBeenCalledWith("after:run", expect.any(Function));
+			sinon.assert.calledWith(mockOn, "after:run", sinon.match.func);
 		});
 	});
 
@@ -85,31 +92,33 @@ describe("GenerateCtrfReport", () => {
 			expect(updatedTestResult.duration).toBe(mockTest.duration);
 		});
 
-		it.each([
+		for (const [testTitle, status, duration] of [
 			[["Test 1"], "passed", 100],
 			[["Test 2"], "failed", 200],
 			[["Test 4"], "pending", 300],
 			[["Test 3"], "skipped", 400],
-		])('should correctly update the ctrfReport for test "%s" with status "%s" and duration %i', (testTitle, status, duration) => {
-			const mockTest: CypressTest = {
-				title: testTitle,
-				state: status as CypressTestState,
-				duration: duration,
-			};
+		] as const) {
+			it(`should correctly update the ctrfReport for test "${testTitle.join(" ")}" with status "${status}" and duration ${duration}`, () => {
+				const mockTest: CypressTest = {
+					title: [...testTitle],
+					state: status as CypressTestState,
+					duration: duration,
+				};
 
-			(reporter as any).updateCtrfResultsFromAfterSpecResults({
-				tests: [mockTest],
+				(reporter as any).updateCtrfResultsFromAfterSpecResults({
+					tests: [mockTest],
+				});
+
+				const updatedTestResult =
+					reporter.ctrfReport.results.tests[
+						reporter.ctrfReport.results.tests.length - 1
+					];
+
+				expect(updatedTestResult.name).toBe(testTitle.join(" "));
+				expect(updatedTestResult.status).toBe(status);
+				expect(updatedTestResult.duration).toBe(duration);
 			});
-
-			const updatedTestResult =
-				reporter.ctrfReport.results.tests[
-					reporter.ctrfReport.results.tests.length - 1
-				];
-
-			expect(updatedTestResult.name).toBe(testTitle.join(" "));
-			expect(updatedTestResult.status).toBe(status);
-			expect(updatedTestResult.duration).toBe(duration);
-		});
+		}
 		it("should use wallClockDuration from the last attempt if duration is absent", () => {
 			const mockTest: CypressTest = {
 				title: ["Test without duration"],
@@ -161,7 +170,7 @@ describe("GenerateCtrfReport", () => {
 				minimal: false,
 			});
 
-			fs.readFileSync.mockImplementation(() => "base64-screenshot-data");
+			readFileSyncStub.returns("base64-screenshot-data");
 
 			const mockTest: CypressTest = {
 				title: ["Test", "With Screenshot"],
@@ -194,9 +203,9 @@ describe("GenerateCtrfReport", () => {
 			});
 
 			// Spy on getScreenshot method
-			const getScreenshotSpy = jest
-				.spyOn(reporter as any, "getScreenshot")
-				.mockReturnValue("base64-screenshot-data");
+			const getScreenshotSpy = sinon
+				.stub(reporter as any, "getScreenshot")
+				.returns("base64-screenshot-data");
 
 			const mockTest: CypressTest = {
 				title: ["Test", "With Spy"],
@@ -211,14 +220,15 @@ describe("GenerateCtrfReport", () => {
 			(reporter as any).updateCtrfResultsFromAfterSpecResults(mockResults);
 
 			// Verify getScreenshot was called with the right parameters
-			expect(getScreenshotSpy).toHaveBeenCalledWith(
+			sinon.assert.calledWith(
+				getScreenshotSpy,
 				mockTest,
 				mockResults,
 				(reporter as any).reporterConfigOptions.screenshot,
 			);
 
 			// Clean up
-			getScreenshotSpy.mockRestore();
+			getScreenshotSpy.restore();
 		});
 
 		it("should call getAttachments to gather all attachments", () => {
@@ -229,9 +239,9 @@ describe("GenerateCtrfReport", () => {
 			});
 
 			// Set up spies for both methods
-			const getScreenshotSpy = jest
-				.spyOn(reporter as any, "getScreenshot")
-				.mockReturnValue("base64-screenshot-data");
+			const getScreenshotSpy = sinon
+				.stub(reporter as any, "getScreenshot")
+				.returns("base64-screenshot-data");
 
 			const mockAttachments = [
 				{
@@ -241,9 +251,9 @@ describe("GenerateCtrfReport", () => {
 				},
 			];
 
-			const getAttachmentsSpy = jest
-				.spyOn(reporter as any, "getAttachments")
-				.mockReturnValue(mockAttachments);
+			const getAttachmentsSpy = sinon
+				.stub(reporter as any, "getAttachments")
+				.returns(mockAttachments);
 
 			const mockTest: CypressTest = {
 				title: ["Test", "With Attachments"],
@@ -259,16 +269,16 @@ describe("GenerateCtrfReport", () => {
 			(reporter as any).updateCtrfResultsFromAfterSpecResults(mockResults);
 
 			// Verify methods were called
-			expect(getScreenshotSpy).toHaveBeenCalled();
-			expect(getAttachmentsSpy).toHaveBeenCalled();
+			sinon.assert.called(getScreenshotSpy);
+			sinon.assert.called(getAttachmentsSpy);
 
 			const updatedTestResult = reporter.ctrfReport.results.tests[0];
 			expect(updatedTestResult.screenshot).toBe("base64-screenshot-data");
 			expect(updatedTestResult.attachments).toEqual(mockAttachments);
 
 			// Clean up
-			getScreenshotSpy.mockRestore();
-			getAttachmentsSpy.mockRestore();
+			getScreenshotSpy.restore();
+			getAttachmentsSpy.restore();
 		});
 	});
 
@@ -290,36 +300,36 @@ describe("GenerateCtrfReport", () => {
 			);
 		});
 
-		it.each([
-			["passed", 1, 0, 0, 0, 0],
-			["failed", 0, 1, 0, 0, 0],
-			["skipped", 0, 0, 1, 0, 0],
-			["pending", 0, 0, 0, 1, 0],
-		])("should update for status %s", (_status, passed, failed, skipped, pending) => {
-			const mockRun: CypressAfterRun = {
-				totalTests: 1,
-				totalPassed: passed,
-				totalFailed: failed,
-				totalSkipped: skipped,
-				totalPending: pending,
-				totalSuites: 0,
-			};
+		for (const [status, passed, failed, skipped, pending] of [
+			["passed", 1, 0, 0, 0],
+			["failed", 0, 1, 0, 0],
+			["skipped", 0, 0, 1, 0],
+			["pending", 0, 0, 0, 1],
+		] as const) {
+			it(`should update for status ${status}`, () => {
+				const mockRun: CypressAfterRun = {
+					totalTests: 1,
+					totalPassed: passed,
+					totalFailed: failed,
+					totalSkipped: skipped,
+					totalPending: pending,
+					totalSuites: 0,
+				};
 
-			(reporter as any).updateCtrfTotalsFromAfterRun(mockRun);
+				(reporter as any).updateCtrfTotalsFromAfterRun(mockRun);
 
-			expect(reporter.ctrfReport.results.summary.passed).toBe(passed);
-			expect(reporter.ctrfReport.results.summary.failed).toBe(failed);
-			expect(reporter.ctrfReport.results.summary.skipped).toBe(skipped);
-			expect(reporter.ctrfReport.results.summary.pending).toBe(pending);
-		});
+				expect(reporter.ctrfReport.results.summary.passed).toBe(passed);
+				expect(reporter.ctrfReport.results.summary.failed).toBe(failed);
+				expect(reporter.ctrfReport.results.summary.skipped).toBe(skipped);
+				expect(reporter.ctrfReport.results.summary.pending).toBe(pending);
+			});
+		}
 	});
 
 	describe("getScreenshot", () => {
 		beforeEach(() => {
-			fs.readFileSync.mockClear();
-			fs.readFileSync.mockImplementation(
-				(path: string) => `base64-encoded-${path}`,
-			);
+			readFileSyncStub.resetHistory();
+			readFileSyncStub.callsFake((path: string) => `base64-encoded-${path}`);
 		});
 
 		it("should return undefined when screenshot option is false", () => {
@@ -362,7 +372,8 @@ describe("GenerateCtrfReport", () => {
 			expect(screenshot).toBe(
 				"base64-encoded-/path/to/Test -- With Failed Screenshot (failed).png",
 			);
-			expect(fs.readFileSync).toHaveBeenCalledWith(
+			sinon.assert.calledWith(
+				readFileSyncStub,
 				"/path/to/Test -- With Failed Screenshot (failed).png",
 				{ encoding: "base64" },
 			);
@@ -390,7 +401,8 @@ describe("GenerateCtrfReport", () => {
 			expect(screenshot).toBe(
 				"base64-encoded-/path/to/Test -- With Multiple Screenshots (3).png",
 			);
-			expect(fs.readFileSync).toHaveBeenCalledWith(
+			sinon.assert.calledWith(
+				readFileSyncStub,
 				"/path/to/Test -- With Multiple Screenshots (3).png",
 				{ encoding: "base64" },
 			);
@@ -418,7 +430,8 @@ describe("GenerateCtrfReport", () => {
 			expect(screenshot).toBe(
 				"base64-encoded-/path/to/Test -- With Both Types (failed).png",
 			);
-			expect(fs.readFileSync).toHaveBeenCalledWith(
+			sinon.assert.calledWith(
+				readFileSyncStub,
 				"/path/to/Test -- With Both Types (failed).png",
 				{ encoding: "base64" },
 			);
@@ -443,7 +456,7 @@ describe("GenerateCtrfReport", () => {
 
 			const screenshot = (reporter as any).getScreenshot(test, results);
 			expect(screenshot).toBeUndefined();
-			expect(fs.readFileSync).not.toHaveBeenCalled();
+			sinon.assert.notCalled(readFileSyncStub);
 		});
 
 		it("should return undefined when screenshots array is empty", () => {
@@ -462,7 +475,7 @@ describe("GenerateCtrfReport", () => {
 
 			const screenshot = (reporter as any).getScreenshot(test, results);
 			expect(screenshot).toBeUndefined();
-			expect(fs.readFileSync).not.toHaveBeenCalled();
+			sinon.assert.notCalled(readFileSyncStub);
 		});
 
 		it("should return undefined when screenshots is undefined", () => {
@@ -479,7 +492,7 @@ describe("GenerateCtrfReport", () => {
 
 			const screenshot = (reporter as any).getScreenshot(test, results);
 			expect(screenshot).toBeUndefined();
-			expect(fs.readFileSync).not.toHaveBeenCalled();
+			sinon.assert.notCalled(readFileSyncStub);
 		});
 
 		it("should handle empty paths in screenshots array", () => {
@@ -503,7 +516,8 @@ describe("GenerateCtrfReport", () => {
 			expect(screenshot).toBe(
 				"base64-encoded-/path/to/Test -- With Empty Path.png",
 			);
-			expect(fs.readFileSync).toHaveBeenCalledWith(
+			sinon.assert.calledWith(
+				readFileSyncStub,
 				"/path/to/Test -- With Empty Path.png",
 				{ encoding: "base64" },
 			);
@@ -534,7 +548,7 @@ describe("GenerateCtrfReport", () => {
 				path: "/path/to/Test -- With Attachment Parameter.png",
 			});
 			// Should not read file content for attachment mode
-			expect(fs.readFileSync).not.toHaveBeenCalled();
+			sinon.assert.notCalled(readFileSyncStub);
 		});
 
 		it("should return all matching screenshots as CtrfAttachment[] when attachment parameter is true", () => {
@@ -568,7 +582,7 @@ describe("GenerateCtrfReport", () => {
 			});
 
 			// Verify no file reading occurred
-			expect(fs.readFileSync).not.toHaveBeenCalled();
+			sinon.assert.notCalled(readFileSyncStub);
 		});
 
 		it("should return a string when attachment parameter is false", () => {
@@ -588,7 +602,8 @@ describe("GenerateCtrfReport", () => {
 			const result = (reporter as any).getScreenshot(test, results, false);
 			expect(typeof result).toBe("string");
 			expect(result).toBe("base64-encoded-/path/to/Test -- String Return.png");
-			expect(fs.readFileSync).toHaveBeenCalledWith(
+			sinon.assert.calledWith(
+				readFileSyncStub,
 				"/path/to/Test -- String Return.png",
 				{ encoding: "base64" },
 			);
@@ -613,7 +628,7 @@ describe("GenerateCtrfReport", () => {
 
 			const attachments = (reporter as any).getScreenshot(test, results, true);
 			expect(attachments).toBeUndefined();
-			expect(fs.readFileSync).not.toHaveBeenCalled();
+			sinon.assert.notCalled(readFileSyncStub);
 		});
 
 		it("should filter out empty paths when attachment is true", () => {
@@ -641,7 +656,7 @@ describe("GenerateCtrfReport", () => {
 				contentType: "image/png",
 				path: "/path/to/Test -- With Empty Path.png",
 			});
-			expect(fs.readFileSync).not.toHaveBeenCalled();
+			sinon.assert.notCalled(readFileSyncStub);
 		});
 	});
 });

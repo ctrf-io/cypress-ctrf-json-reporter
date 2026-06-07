@@ -6,7 +6,8 @@
 		"outDir": "./dist",
 		"rootDir": "./src",
 		"declaration": true,
-		"types": ["node", "jest"]
+		"types": ["node"]
 	},
-	"include": ["src/**/*.ts"]
+	"include": ["src/**/*.ts"],
+	"exclude": ["tests/**/*", "node_modules", "dist", "coverage", "ctrf"]
 }
