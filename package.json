@@ -1,6 +1,6 @@
 {
 	"name": "cypress-ctrf-json-reporter",
-	"version": "0.0.14",
+	"version": "0.0.15-next.0",
 	"description": "Generate a common JSON test report for Cypress tests",
 	"type": "module",
 	"main": "./dist/index.cjs",
