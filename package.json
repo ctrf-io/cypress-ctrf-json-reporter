@@ -2,22 +2,44 @@
 	"name": "cypress-ctrf-json-reporter",
 	"version": "0.0.14",
 	"description": "Generate a common JSON test report for Cypress tests",
-	"main": "dist/index.js",
+	"type": "module",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
 	"exports": {
-		".": "./dist/index.js",
-		"./runtime": "./dist/runtime.js",
-		"./plugin": "./dist/plugin.js",
-		"./support": "./dist/support.js"
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"require": "./dist/index.cjs"
+		},
+		"./runtime": {
+			"types": "./dist/runtime.d.ts",
+			"import": "./dist/runtime.js",
+			"require": "./dist/runtime.cjs"
+		},
+		"./plugin": {
+			"types": "./dist/plugin.d.ts",
+			"import": "./dist/plugin.js",
+			"require": "./dist/plugin.cjs"
+		},
+		"./support": {
+			"types": "./dist/support.d.ts",
+			"import": "./dist/support.js",
+			"require": "./dist/support.cjs"
+		}
 	},
 	"scripts": {
-		"build": "tsc",
-		"test": "mocha --import=tsx --reporter mocha-ctrf-json-reporter \"tests/**/*.test.ts\"",
+		"build": "tsup",
+		"build:check": "tsc -p . --noEmit",
+		"build:watch": "tsup --watch",
+		"clean": "rm -rf dist && rm -rf coverage && rm -rf ctrf",
+		"test": "npm run build && mocha --import=tsx --reporter mocha-ctrf-json-reporter \"tests/**/*.test.ts\"",
 		"lint": "biome lint --write . --unsafe",
 		"lint:check": "biome lint .",
 		"format": "biome format --write .",
 		"format:check": "biome format .",
 		"check": "biome check .",
-		"all": "npm run lint:check && npm run format:check && npm run test && npm run build"
+		"all": "npm run build:check && npm run lint:check && npm run format:check && npm run test && npm run build"
 	},
 	"repository": {
 		"type": "git",
@@ -58,6 +80,7 @@
 		"mocha": "11.7.6",
 		"mocha-ctrf-json-reporter": "0.0.7",
 		"sinon": "21.0.0",
+		"tsup": "8.5.1",
 		"tsx": "4.22.4",
 		"typescript": "6.0.3"
 	},

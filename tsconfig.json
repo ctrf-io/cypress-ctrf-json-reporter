@@ -1,13 +1,25 @@
 {
 	"compilerOptions": {
-		"target": "es6",
-		"module": "commonjs",
+		"target": "ES2023",
+		"module": "ESNext",
+		"moduleResolution": "bundler",
 		"strict": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,
 		"outDir": "./dist",
 		"rootDir": "./src",
 		"declaration": true,
-		"types": ["node"]
+		"declarationDir": "./dist",
+		"forceConsistentCasingInFileNames": true,
+		"types": ["node"],
+		"ignoreDeprecations": "6.0"
 	},
-	"include": ["src/**/*.ts"],
-	"exclude": ["tests/**/*", "node_modules", "dist", "coverage", "ctrf"]
+	"include": ["src/**/*", "types/**/*"],
+	"exclude": [
+		"tests/**/*",
+		"dist/**/*",
+		"node_modules/**/*",
+		"coverage/**/*",
+		"ctrf/**/*"
+	]
 }
