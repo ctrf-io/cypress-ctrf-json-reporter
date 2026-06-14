@@ -6,7 +6,7 @@ import type {
 	CypressTestState,
 } from "../types/cypress";
 import { expect } from "expect";
-import fs = require("node:fs");
+import fs from "node:fs";
 import sinon from "sinon";
 
 describe("GenerateCtrfReport", () => {

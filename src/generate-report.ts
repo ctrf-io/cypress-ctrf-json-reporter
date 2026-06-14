@@ -1,6 +1,6 @@
-import fs = require("node:fs");
-import path = require("node:path");
-import * as crypto from "node:crypto";
+import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 
 import type { CTRFReport, Test, Environment, Attachment } from "ctrf";
 import type {
