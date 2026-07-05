@@ -78,7 +78,7 @@
 		"@types/sinon": "22.0.0",
 		"expect": "30.4.1",
 		"mocha": "11.7.6",
-		"mocha-ctrf-json-reporter": "0.0.7",
+		"mocha-ctrf-json-reporter": "0.0.11",
 		"sinon": "22.0.0",
 		"tsup": "8.5.1",
 		"tsx": "4.22.4",
