@@ -81,7 +81,7 @@
 		"mocha-ctrf-json-reporter": "0.0.11",
 		"sinon": "22.1.0",
 		"tsup": "8.5.1",
-		"tsx": "4.22.4",
+		"tsx": "4.23.4",
 		"typescript": "6.0.3"
 	},
 	"dependencies": {
