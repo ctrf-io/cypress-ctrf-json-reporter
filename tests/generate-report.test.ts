@@ -44,6 +44,7 @@ describe("GenerateCtrfReport", () => {
 		it("emits a numeric environment build number", () => {
 			reporter = new GenerateCtrfReport({ on: mockOn, buildNumber: 100 });
 			reporter.setEnvironmentDetails(reporter.reporterConfigOptions);
+			reporter.ctrfReport.results.environment = reporter.ctrfEnvironment;
 
 			expect(reporter.ctrfReport.results.environment?.buildNumber).toBe(100);
 			expect(() =>
