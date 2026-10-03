@@ -2,7 +2,15 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
-import type { CTRFReport, Test, Environment, Attachment } from "ctrf";
+import type {
+	CTRFReport,
+	Test,
+	Environment,
+	Attachment,
+	RetryAttempt,
+	TestStatus,
+} from "ctrf";
+import { CURRENT_SPEC_VERSION } from "ctrf";
 import type {
 	TestAttempt,
 	CypressAfterRun,
@@ -12,14 +20,6 @@ import type {
 	Config,
 } from "../types/cypress";
 import { getCtrfRuntimeStore } from "./plugin";
-
-type CypressTest_ = Omit<Test, "suite"> & { suite?: string | string[] };
-type CypressResults = Omit<CTRFReport["results"], "tests"> & {
-	tests: CypressTest_[];
-};
-type CypressCTRFReport = Omit<CTRFReport, "results"> & {
-	results: CypressResults;
-};
 
 interface ReporterConfigOptions {
 	on: any;
@@ -34,7 +34,7 @@ interface ReporterConfigOptions {
 	osRelease?: string | undefined;
 	osVersion?: string | undefined;
 	buildName?: string | undefined;
-	buildNumber?: string | undefined;
+	buildNumber?: number | undefined;
 	buildUrl?: string | undefined;
 	repositoryName?: string | undefined;
 	repositoryUrl?: string | undefined;
@@ -43,7 +43,7 @@ interface ReporterConfigOptions {
 }
 
 export class GenerateCtrfReport {
-	readonly ctrfReport: CypressCTRFReport;
+	readonly ctrfReport: CTRFReport;
 	readonly ctrfEnvironment: Environment;
 	readonly reporterConfigOptions: ReporterConfigOptions;
 	readonly reporterName = "cypress-ctrf-json-reporter";
@@ -77,7 +77,7 @@ export class GenerateCtrfReport {
 		};
 		this.ctrfReport = {
 			reportFormat: "CTRF",
-			specVersion: "0.0.0",
+			specVersion: CURRENT_SPEC_VERSION,
 			reportId: crypto.randomUUID(),
 			timestamp: new Date().toISOString(),
 			generatedBy: "cypress-ctrf-json-reporter",
@@ -172,10 +172,11 @@ export class GenerateCtrfReport {
 				typeof test.duration === "number"
 					? test.duration
 					: (latestAttempt?.wallClockDuration ?? 0);
-			const attemptsLength = test.attempts?.length ?? 0;
-			const isFlaky = test.state === "passed" && attemptsLength > 1;
+			const attempts = test.attempts ?? [];
+			const retries = Math.max(0, attempts.length - 1);
+			const isFlaky = test.state === "passed" && retries > 0;
 
-			const ctrfTest: CypressTest_ = {
+			const ctrfTest: Test = {
 				name: test.title.join(" "),
 				status: test.state,
 				duration: durationValue,
@@ -193,7 +194,10 @@ export class GenerateCtrfReport {
 				ctrfTest.rawStatus = test.state;
 				ctrfTest.type = this.reporterConfigOptions.testType ?? "e2e";
 				ctrfTest.filePath = cypressResults.spec?.relative;
-				ctrfTest.retries = attemptsLength - 1;
+				ctrfTest.retries = retries;
+				if (retries > 0) {
+					ctrfTest.retryAttempts = this.buildRetryAttempts(attempts, retries);
+				}
 				ctrfTest.flaky = isFlaky;
 				ctrfTest.browser = this.browser;
 				const screenshot = this.getScreenshot(test, cypressResults, false);
@@ -202,7 +206,7 @@ export class GenerateCtrfReport {
 				}
 
 				// Merge runtime metadata from final attempt
-				const finalAttemptIndex = attemptsLength - 1;
+				const finalAttemptIndex = attempts.length - 1;
 				const runtimeData = runtimeStore.getByTestIdentity(
 					specRelative,
 					test.title,
@@ -222,6 +226,40 @@ export class GenerateCtrfReport {
 			}
 			this.ctrfReport.results.tests.push(ctrfTest);
 		});
+	}
+
+	private buildRetryAttempts(
+		attempts: TestAttempt[],
+		retries: number,
+	): RetryAttempt[] {
+		return attempts.slice(0, retries).map((attempt, index) => {
+			const retryAttempt: RetryAttempt = {
+				attempt: index + 1,
+				status: this.mapStatus(attempt.state),
+			};
+			if (attempt.wallClockDuration !== undefined) {
+				retryAttempt.duration = attempt.wallClockDuration;
+			}
+			if (attempt.error?.message !== undefined) {
+				retryAttempt.message = attempt.error.message;
+			}
+			if (attempt.error?.stack !== undefined) {
+				retryAttempt.trace = attempt.error.stack;
+			}
+			return retryAttempt;
+		});
+	}
+
+	private mapStatus(status: string): TestStatus {
+		switch (status) {
+			case "passed":
+			case "failed":
+			case "pending":
+			case "skipped":
+				return status;
+			default:
+				return "other";
+		}
 	}
 
 	private updateCtrfTotalsFromAfterRun(run: CypressAfterRun): void {
@@ -411,7 +449,7 @@ export class GenerateCtrfReport {
 		return attachments;
 	}
 
-	private writeReportToFile(data: CypressCTRFReport): void {
+	private writeReportToFile(data: CTRFReport): void {
 		const filePath = path.join(
 			this.reporterConfigOptions.outputDir ?? this.defaultOutputDir,
 			this.reporterConfigOptions.outputFile ?? this.defaultOutputFile,

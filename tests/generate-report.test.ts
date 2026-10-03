@@ -1,4 +1,5 @@
 import { GenerateCtrfReport } from "../src/generate-report";
+import { CURRENT_SPEC_VERSION, validateStrict } from "ctrf";
 import type { Attachment } from "ctrf";
 import type {
 	CypressAfterRun,
@@ -28,6 +29,30 @@ describe("GenerateCtrfReport", () => {
 	});
 
 	describe("Validation and events", () => {
+		it("emits the current CTRF specification version", () => {
+			expect(reporter.ctrfReport.specVersion).toBe(CURRENT_SPEC_VERSION);
+		});
+
+		it("produces a strictly valid base report", () => {
+			expect(() =>
+				validateStrict(reporter.ctrfReport, {
+					specVersion: CURRENT_SPEC_VERSION,
+				}),
+			).not.toThrow();
+		});
+
+		it("emits a numeric environment build number", () => {
+			reporter = new GenerateCtrfReport({ on: mockOn, buildNumber: 100 });
+			reporter.setEnvironmentDetails(reporter.reporterConfigOptions);
+
+			expect(reporter.ctrfReport.results.environment?.buildNumber).toBe(100);
+			expect(() =>
+				validateStrict(reporter.ctrfReport, {
+					specVersion: CURRENT_SPEC_VERSION,
+				}),
+			).not.toThrow();
+		});
+
 		it("should register listeners for after:spec", () => {
 			sinon.assert.calledWith(mockOn, "after:spec", sinon.match.func);
 		});
@@ -144,6 +169,15 @@ describe("GenerateCtrfReport", () => {
 			expect(updatedTestResult.name).toBe(mockTest.title.join(" "));
 			expect(updatedTestResult.status).toBe(mockTest.state);
 			expect(updatedTestResult.duration).toBe(250);
+			expect(updatedTestResult.retries).toBe(1);
+			expect(updatedTestResult.retryAttempts).toEqual([
+				{ attempt: 1, status: "passed", duration: 150 },
+			]);
+			expect(() =>
+				validateStrict(reporter.ctrfReport, {
+					specVersion: CURRENT_SPEC_VERSION,
+				}),
+			).not.toThrow();
 		});
 
 		it("should default duration to 0 if both duration and attempts are absent", () => {

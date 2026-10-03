@@ -2,6 +2,8 @@
 
 > Save Cypress test results as a JSON file
 
+![CTRF 0.1.0](https://img.shields.io/badge/0.1.0-red?label=ctrf&labelColor=green)
+
 A Cypress JSON test reporter to create test reports that follow the CTRF standard.
 
 [Common Test Report Format](https://ctrf.io) ensures the generation of uniform JSON test reports, independent of programming languages or test framework in use.
@@ -52,7 +54,7 @@ By standardizing test results, reports can be validated, merged, compared, and a
     "environment": {
       "appName": "MyApp",
       "buildName": "MyBuild",
-      "buildNumber": "1"
+      "buildNumber": 1
     }
   }
 }
@@ -127,7 +129,7 @@ new GenerateCtrfReport({
   osRelease: '18.04', // Optional: Specify the OS release version.
   osVersion: '5.4.0', // Optional: Specify the OS version.
   buildName: 'MyApp Build', // Optional: Specify the build name.
-  buildNumber: '100', // Optional: Specify the build number.
+  buildNumber: 100, // Optional: Specify the numeric build number.
   buildUrl: 'https://ctrf.io', // Optional: Specify the build url.
   repositoryName: 'ctrf-json', // Optional: Specify the repository name.
   repositoryUrl: 'https://gh.io', // Optional: Specify the repository url.
