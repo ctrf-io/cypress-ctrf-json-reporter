@@ -11,22 +11,19 @@
  * ```ts
  * import 'cypress-ctrf-json-reporter/support'
  *
- * // Re-export for test files to import from the same module instance
- * export { ctrf } from 'cypress-ctrf-json-reporter/runtime'
  * ```
  *
  * Then in test files:
  * ```ts
- * import { ctrf } from '../support/e2e'
+ * import { ctrf } from 'cypress-ctrf-json-reporter/runtime'
  *
  * it('my test', () => {
  *   ctrf.extra({ owner: 'my-team' })
  * })
  * ```
  *
- * IMPORTANT: Test files must import `ctrf` from your support file's re-export,
- * NOT directly from the runtime module. This ensures the transport is registered
- * before any runtime calls are made.
+ * The support and runtime entry points share the registered transport.
+ * Browser imports from the package root also resolve to the runtime API.
  *
  * This automatically:
  * 1. Registers the transport for the runtime API

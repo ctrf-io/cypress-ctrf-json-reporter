@@ -158,8 +158,13 @@ class CtrfRuntimeStore {
 	}
 }
 
-// Singleton store instance
-const runtimeStore = new CtrfRuntimeStore();
+// Share the store across separately bundled reporter and plugin entry points.
+const storeKey = Symbol.for("ctrf.cypress.runtime.store");
+const storeState = globalThis as typeof globalThis & {
+	[storeKey]?: CtrfRuntimeStore;
+};
+const runtimeStore = storeState[storeKey] ?? new CtrfRuntimeStore();
+storeState[storeKey] = runtimeStore;
 
 /**
  * Get the runtime store instance (for use by reporter)

@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { expect } from "expect";
 import { ctrf, extra, GenerateCtrfReport } from "cypress-ctrf-json-reporter";
@@ -11,6 +12,25 @@ import { ctrf as runtimeCtrf } from "cypress-ctrf-json-reporter/runtime";
 const require = createRequire(import.meta.url);
 
 describe("package exports", () => {
+	it("resolves the browser root to the runtime-only entry", () => {
+		const output = execFileSync(
+			process.execPath,
+			[
+				"--conditions=browser",
+				"--input-type=module",
+				"-e",
+				"import * as api from 'cypress-ctrf-json-reporter'; console.log(typeof api.extra, typeof api.GenerateCtrfReport)",
+			],
+			{ encoding: "utf8" },
+		);
+		expect(output.trim()).toBe("function undefined");
+	});
+	it("shares runtime storage across ESM and CommonJS entry points", () => {
+		const root = require("cypress-ctrf-json-reporter");
+		const plugin = require("cypress-ctrf-json-reporter/plugin");
+		expect(root.getCtrfRuntimeStore()).toBe(getCtrfRuntimeStore());
+		expect(plugin.getCtrfRuntimeStore()).toBe(getCtrfRuntimeStore());
+	});
 	it("supports ESM package root imports", () => {
 		expect(typeof GenerateCtrfReport).toBe("function");
 		expect(typeof extra).toBe("function");

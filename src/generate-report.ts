@@ -1,9 +1,4 @@
-import {
-	identityValue,
-	runIdentity,
-	testIdentity,
-	type IdentityOptions,
-} from "./identity";
+import { identityValue, testIdentity, type IdentityOptions } from "./identity";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -86,7 +81,9 @@ export class GenerateCtrfReport {
 		};
 		this.ctrfReport = {
 			reportFormat: "CTRF",
-			runId: runIdentity(this.reporterConfigOptions.runId),
+			...(this.reporterConfigOptions.runId
+				? { runId: this.reporterConfigOptions.runId }
+				: {}),
 			specVersion: CURRENT_SPEC_VERSION,
 			reportId: crypto.randomUUID(),
 			timestamp: new Date().toISOString(),

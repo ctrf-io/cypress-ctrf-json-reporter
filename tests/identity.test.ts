@@ -1,9 +1,15 @@
 import { describe, it } from "mocha";
 import assert from "node:assert/strict";
-import { runIdentity, testIdentity } from "../src/identity";
+import { testIdentity } from "../src/identity";
 import { GenerateCtrfReport } from "../src/generate-report";
 
 describe("identity lifecycle", () => {
+	it("omits run identity unless configured with a value", () => {
+		for (const runId of [undefined, ""]) {
+			const reporter = new GenerateCtrfReport({ on: () => {}, runId });
+			assert.equal(Object.hasOwn(reporter.ctrfReport, "runId"), false);
+		}
+	});
 	it("keeps shared run/shard identity and logical test IDs in minimal output", () => {
 		const one = new GenerateCtrfReport({
 			on: () => {},
@@ -58,6 +64,5 @@ describe("identity lifecycle", () => {
 			testIdentity("cypress", { name: "same", suite: ["a/b", "c"] }),
 			testIdentity("cypress", { name: "same", suite: ["a", "b/c"] }),
 		);
-		assert.notEqual(runIdentity(), runIdentity());
 	});
 });
