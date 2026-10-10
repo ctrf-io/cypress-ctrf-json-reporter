@@ -1,3 +1,9 @@
+import {
+	identityValue,
+	runIdentity,
+	testIdentity,
+	type IdentityOptions,
+} from "./identity";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -21,7 +27,7 @@ import type {
 } from "../types/cypress";
 import { getCtrfRuntimeStore } from "./plugin";
 
-interface ReporterConfigOptions {
+interface ReporterConfigOptions extends IdentityOptions {
 	on: any;
 	outputFile?: string;
 	outputDir?: string;
@@ -57,6 +63,9 @@ export class GenerateCtrfReport {
 	constructor(reporterOptions: ReporterConfigOptions) {
 		this.reporterConfigOptions = {
 			on: reporterOptions.on,
+			runId: reporterOptions?.runId,
+			shardId: identityValue(reporterOptions?.shardId, "shardId"),
+			testIdResolver: reporterOptions?.testIdResolver,
 			outputFile: reporterOptions?.outputFile ?? this.defaultOutputFile,
 			outputDir: reporterOptions?.outputDir ?? this.defaultOutputDir,
 			minimal: reporterOptions?.minimal ?? false,
@@ -77,6 +86,7 @@ export class GenerateCtrfReport {
 		};
 		this.ctrfReport = {
 			reportFormat: "CTRF",
+			runId: runIdentity(this.reporterConfigOptions.runId),
 			specVersion: CURRENT_SPEC_VERSION,
 			reportId: crypto.randomUUID(),
 			timestamp: new Date().toISOString(),
@@ -177,6 +187,17 @@ export class GenerateCtrfReport {
 			const isFlaky = test.state === "passed" && retries > 0;
 
 			const ctrfTest: Test = {
+				testId: testIdentity(
+					"cypress",
+					{
+						name: test.title[test.title.length - 1] ?? "",
+						suite: test.title.slice(0, -1),
+						filePath: specRelative,
+					},
+					this.reporterConfigOptions,
+				),
+				executionId: crypto.randomUUID(),
+				attemptId: crypto.randomUUID(),
 				name: test.title.join(" "),
 				status: test.state,
 				duration: durationValue,
@@ -216,7 +237,9 @@ export class GenerateCtrfReport {
 					ctrfTest.extra = { ...(ctrfTest.extra ?? {}), ...runtimeData };
 				}
 			}
-			const attachments = this.getAttachments(test, cypressResults);
+			const attachments = this.getAttachments(test, cypressResults).map(
+				(attachment) => ({ ...attachment, attachmentId: crypto.randomUUID() }),
+			);
 			if (attachments.length > 0) {
 				if (ctrfTest.attachments !== undefined) {
 					ctrfTest.attachments = [...ctrfTest.attachments, ...attachments];
@@ -235,6 +258,7 @@ export class GenerateCtrfReport {
 		return attempts.slice(0, retries).map((attempt, index) => {
 			const retryAttempt: RetryAttempt = {
 				attempt: index + 1,
+				attemptId: crypto.randomUUID(),
 				status: this.mapStatus(attempt.state),
 			};
 			if (attempt.wallClockDuration !== undefined) {
@@ -276,6 +300,11 @@ export class GenerateCtrfReport {
 	}
 
 	setEnvironmentDetails(reporterConfigOptions: ReporterConfigOptions): void {
+		if (reporterConfigOptions.shardId !== undefined)
+			this.ctrfEnvironment.shardId = identityValue(
+				reporterConfigOptions.shardId,
+				"shardId",
+			);
 		if (reporterConfigOptions.appName !== undefined) {
 			this.ctrfEnvironment.appName = reporterConfigOptions.appName;
 		}
