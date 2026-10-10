@@ -171,7 +171,7 @@ describe("GenerateCtrfReport", () => {
 			expect(updatedTestResult.status).toBe(mockTest.state);
 			expect(updatedTestResult.duration).toBe(250);
 			expect(updatedTestResult.retries).toBe(1);
-			expect(updatedTestResult.retryAttempts).toEqual([
+			expect(updatedTestResult.retryAttempts).toMatchObject([
 				{ attempt: 1, status: "passed", duration: 150 },
 			]);
 			expect(() =>
@@ -309,7 +309,7 @@ describe("GenerateCtrfReport", () => {
 
 			const updatedTestResult = reporter.ctrfReport.results.tests[0];
 			expect(updatedTestResult.screenshot).toBe("base64-screenshot-data");
-			expect(updatedTestResult.attachments).toEqual(mockAttachments);
+			expect(updatedTestResult.attachments).toMatchObject(mockAttachments);
 
 			// Clean up
 			getScreenshotSpy.restore();

@@ -2,7 +2,7 @@
 
 > Save Cypress test results as a JSON file
 
-![CTRF 0.1.0](https://img.shields.io/badge/0.1.0-red?label=ctrf&labelColor=green)
+![CTRF 0.2.0](https://img.shields.io/badge/0.2.0-red?label=ctrf&labelColor=green)
 
 A Cypress JSON test reporter to create test reports that follow the CTRF standard.
 

@@ -49,15 +49,18 @@ export interface CtrfTransport {
 	send(message: CtrfCypressMessage): void;
 }
 
-// Global transport - set by the browser adapter
-let activeTransport: CtrfTransport | null = null;
+// Share transport across separately bundled support and runtime entry points.
+const transportKey = Symbol.for("ctrf.cypress.runtime.transport");
+const transportState = globalThis as typeof globalThis & {
+	[transportKey]?: CtrfTransport;
+};
 
 /**
  * Register a transport (called by the browser adapter during Cypress setup).
  * @internal
  */
 export function __registerTransport(transport: CtrfTransport): void {
-	activeTransport = transport;
+	transportState[transportKey] = transport;
 }
 
 /**
@@ -65,7 +68,7 @@ export function __registerTransport(transport: CtrfTransport): void {
  * @internal
  */
 export function __clearTransport(): void {
-	activeTransport = null;
+	delete transportState[transportKey];
 }
 
 /**
@@ -130,6 +133,7 @@ export function __getCurrentTestKey(): string | null {
  * ctrf.extra({ executionId: 'abc123', retryable: true })
  */
 export function extra(data: Record<string, unknown>): void {
+	const activeTransport = transportState[transportKey];
 	if (!activeTransport) {
 		// No transport registered - silently ignore (might be imported outside Cypress)
 		return;
