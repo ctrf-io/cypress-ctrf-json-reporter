@@ -44,7 +44,12 @@
 		"format": "biome format --write .",
 		"format:check": "biome format .",
 		"check": "biome check .",
-		"all": "npm run build:check && npm run lint:check && npm run format:check && npm run test && npm run build"
+		"all": "npm run build:check && npm run lint:check && npm run format:check && npm run test && npm run build",
+		"test:standard:checker": "node tests/standard/checker/run.mjs",
+		"test:standard:conformance:unit": "npm run build && node tests/standard/conformance/run.mjs unit",
+		"test:standard:conformance:integration": "npm run build && node tests/standard/conformance/run.mjs integration",
+		"test:standard:conformance": "node tests/standard/conformance/run-all.mjs",
+		"test:standard": "node tests/standard/run-all.mjs"
 	},
 	"repository": {
 		"type": "git",
@@ -77,18 +82,21 @@
 		"url": "https://github.com/ctrf-io/.github/blob/main/SECURITY.md"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.5.15",
+		"@biomejs/biome": "2.6.2",
 		"@types/mocha": "10.0.10",
 		"@types/node": "26.6.5",
-		"@types/sinon": "22.0.0",
+		"@types/sinon": "22.0.1",
 		"@typescript/native": "npm:typescript@7.0.2",
 		"expect": "30.5.2",
 		"mocha": "12.0.3",
 		"mocha-ctrf-json-reporter": "0.2.0",
 		"sinon": "22.1.0",
-		"tsup": "8.5.1",
+		"tsup": "9.0.0",
 		"tsx": "4.23.15",
-		"typescript": "npm:@typescript/typescript6@6.0.2"
+		"typescript": "npm:@typescript/typescript6@6.0.2",
+		"ajv": "8.20.0",
+		"ajv-formats": "3.0.1",
+		"cypress": "16.2.0"
 	},
 	"dependencies": {
 		"ctrf": "0.5.0"
