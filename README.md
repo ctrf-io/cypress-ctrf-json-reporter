@@ -333,3 +333,11 @@ CTRF is a universal JSON test report schema that addresses the lack of a standar
 **Language and Framework Agnostic:** It provides a universal reporting schema that works seamlessly with any programming language and testing framework.
 
 **Facilitates Better Analysis:** With a standardized format, programatically analyzing test outcomes across multiple platforms becomes more straightforward.
+
+## Conformance tests
+
+Shared conformance suites check serialized output against the declared CTRF schema
+and specification, using controlled unit inputs and real installed-package runs.
+See the [suite guide](tests/standard/conformance/README.md) and
+[contributor guidance](CONTRIBUTING.md#conformance-tests). Existing reporter tests
+and independent shared checker controls remain separate.

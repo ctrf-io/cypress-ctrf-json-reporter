@@ -32,6 +32,8 @@ jobs:
 
       - name: Install
         run: npm ci
+        env:
+          CYPRESS_INSTALL_BINARY: 0
 
       - name: Lint
         run: npm run lint:check
@@ -51,6 +53,7 @@ jobs:
     permissions:
       contents: read
       actions: read
+      pull-requests: write
 
     steps:
       - name: Checkout
@@ -64,6 +67,8 @@ jobs:
 
       - name: Install
         run: npm ci
+        env:
+          CYPRESS_INSTALL_BINARY: 0
 
       - name: Type check (TypeScript 7)
         run: npm run build:check
@@ -75,7 +80,13 @@ jobs:
         uses: ctrf-io/github-test-reporter@v1
         with:
           report-path: './ctrf/*.json'
-          summary-delta-report: true
+          title: 'Reporter tests (Node ${{ matrix.node }})'
+          summary-report: true
+          test-report: true
+          collapse-large-reports: true
+          pull-request: ${{ matrix.node == '24' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+          overwrite-comment: true
+          comment-tag: reporter-tests
           github-report: true
           insights-report: true
           flaky-rate-report: true
@@ -88,6 +99,104 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  integration:
+    name: Real Cypress integration (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    needs: [quality]
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['22', '24', '26']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Prepare conformance diagnostics
+        run: |
+          echo "CTRF_STANDARD_ARTIFACTS=$RUNNER_TEMP/conformance" >> "$GITHUB_ENV"
+          echo "CYPRESS_CACHE_FOLDER=$RUNNER_TEMP/cypress-cache" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/conformance"
+
+      - name: Install
+        id: install
+        run: npm ci
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+
+      - name: Run shared checker controls
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run test:standard:checker
+
+      - name: Run unit conformance
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run test:standard:conformance:unit
+
+      - name: Install and verify Cypress browser runtime
+        id: browser
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          npx cypress install
+          npx cypress verify
+
+      - name: Run installed-package conformance with real Cypress
+        if: ${{ !cancelled() && steps.browser.outcome == 'success' }}
+        run: npm run test:standard:conformance:integration
+
+      - name: Publish conformance test reports
+        uses: ctrf-io/github-test-reporter@v1
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        with:
+          report-path: '${{ runner.temp }}/conformance/reports/*.json'
+          title: 'Reporter conformance — contract families (Node ${{ matrix.node }})'
+          summary-report: true
+          suite-folded-report: true
+          group-by: suite
+          pull-request: ${{ matrix.node == '24' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+          overwrite-comment: true
+          comment-tag: reporter-conformance
+          collapse-large-reports: true
+          upload-artifact: true
+          artifact-name: ctrf-conformance-node-${{ matrix.node }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish shared checker controls
+        uses: ctrf-io/github-test-reporter@v1
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        with:
+          report-path: '${{ runner.temp }}/conformance/checker-reports/*.json'
+          title: 'Shared checker controls (Node ${{ matrix.node }})'
+          summary-report: true
+          suite-folded-report: true
+          group-by: suite
+          pull-request: ${{ matrix.node == '24' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
+          overwrite-comment: true
+          comment-tag: reporter-checker
+          upload-artifact: true
+          artifact-name: ctrf-checker-node-${{ matrix.node }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload conformance results and diagnostics
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: conformance-node-${{ matrix.node }}
+          path: ${{ runner.temp }}/conformance/
+          include-hidden-files: true
+          if-no-files-found: warn
 
   security:
     name: Security (deps audit)
@@ -106,6 +215,8 @@ jobs:
 
       - name: Install
         run: npm ci
+        env:
+          CYPRESS_INSTALL_BINARY: 0
 
       - name: npm audit (prod)
         run: npm audit --omit=dev
