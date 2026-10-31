@@ -321,10 +321,13 @@ export class GenerateCtrfReport {
 			this.ctrfEnvironment.buildName = reporterConfigOptions.buildName;
 		}
 		if (reporterConfigOptions.buildNumber !== undefined) {
-			// TODO(v1): remove cast once buildNumber config type is changed to number.
-			this.ctrfEnvironment.buildNumber = Number(
-				reporterConfigOptions.buildNumber,
-			);
+			if (Number.isInteger(reporterConfigOptions.buildNumber)) {
+				this.ctrfEnvironment.buildNumber = reporterConfigOptions.buildNumber;
+			} else {
+				console.warn(
+					"[CTRF] buildNumber must be a finite integer; omitting invalid value.",
+				);
+			}
 		}
 		if (reporterConfigOptions.buildUrl !== undefined) {
 			this.ctrfEnvironment.buildUrl = reporterConfigOptions.buildUrl;

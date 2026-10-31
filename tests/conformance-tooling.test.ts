@@ -125,97 +125,39 @@ function numericContext() {
 		}),
 	};
 }
-test("exceptions / exact numeric defects reproduce at affected level", () => {
-	assert.equal(
-		runConformance(
-			property("results.environment.buildNumber"),
-			numericContext(),
-			"unit",
-		).issue,
-		"invalid-build-number",
-	);
-});
-for (const [name, mutate] of [
-	[
-		"fully fixed",
-		(context) => {
-			for (const sample of context.samples)
-				sample.report.results.environment.buildNumber = 0;
-		},
-	],
-	[
-		"partially fixed",
-		(context) => {
-			context.samples[1].report.results.environment.buildNumber = 0;
-		},
-	],
-	[
-		"different value",
-		(context) => {
-			context.samples[0].report.results.environment.buildNumber = "bad";
-		},
-	],
-	[
-		"missing fixture",
-		(context) => {
-			context.samples.pop();
-		},
-	],
-	[
-		"duplicate fixture",
-		(context) => {
-			context.samples.push(context.samples[0]);
-		},
-	],
-])
-	test(`exceptions / rejects ${name}`, () => {
+for (const level of ["unit", "integration"]) {
+	test(`build numbers / invalid output fails normally at ${level}`, () => {
+		assert.throws(
+			() =>
+				runConformance(
+					property("results.environment.buildNumber"),
+					numericContext(),
+					level,
+				),
+			/must be integer/,
+		);
+	});
+	test(`build numbers / omitted values pass without an exception at ${level}`, () => {
 		const context = numericContext();
-		mutate(context);
-		assert.throws(() =>
+		for (const sample of context.samples) {
+			delete sample.report.results.environment.buildNumber;
+			sample.bytes = Buffer.from(JSON.stringify(sample.report));
+		}
+		const positive = control().samples[0];
+		positive.report.results.environment = { buildNumber: 0 };
+		positive.bytes = Buffer.from(JSON.stringify(positive.report));
+		context.samples.push(positive);
+		assert.equal(
 			runConformance(
 				property("results.environment.buildNumber"),
 				context,
-				"unit",
+				level,
 			),
+			undefined,
 		);
 	});
-test("exceptions / infrastructure error is never accepted", () => {
-	assert.throws(
-		() =>
-			runConformance(
-				property("results.environment.buildNumber"),
-				numericContext(),
-				"unit",
-				() => {
-					throw new Error("infrastructure");
-				},
-			),
-		/infrastructure/,
-	);
-});
-test("exceptions / same bug at unrecorded level fails normally", () => {
-	assert.throws(() =>
-		runConformance(
-			property("results.environment.buildNumber"),
-			numericContext(),
-			"unrecorded",
-		),
-	);
-});
-test("exceptions / unrecorded samples keep running", () => {
-	const context = numericContext();
-	const sample = control().samples[0];
-	sample.report.results.environment = { buildNumber: "invalid" };
-	context.samples.push(sample);
-	assert.throws(() =>
-		runConformance(
-			property("results.environment.buildNumber"),
-			context,
-			"unit",
-		),
-	);
-});
-test("reporting / expected failures are Other with identity and issue metadata", () => {
+}
+test("reporting / removed build-number labels remain ordinary results", () => {
 	const name =
 		"conformance/property/results.environment.buildNumber [expected failure: invalid-build-number]";
 	const report = createReport(
@@ -235,18 +177,15 @@ test("reporting / expected failures are Other with identity and issue metadata",
 		tests: 5,
 		start: 0,
 		stop: 10,
-		passed: 1,
+		passed: 2,
 		failed: 1,
 		skipped: 1,
 		pending: 1,
-		other: 1,
+		other: 0,
 	});
-	assert.equal(report.results.tests[0].rawStatus, "expected-failure");
+	assert.equal(report.results.tests[0].rawStatus, "passed");
 	assert.equal(report.results.tests[0].duration, 1);
-	assert.equal(
-		report.results.tests[0].extra.expectedFailure.issue,
-		"invalid-build-number",
-	);
+	assert.equal(report.results.tests[0].extra?.expectedFailure, undefined);
 	assert.notEqual(
 		report.results.tests[0].testId,
 		createReport(
@@ -355,7 +294,7 @@ test("reporting / Node adapter retains skips, TODOs and failures without duplica
 		for await (const chunk of nodeReporter(events())) assert.equal(chunk, "");
 		const report = JSON.parse(readFileSync(reportPath("unit")));
 		assert.equal(report.results.summary.tests, 4);
-		assert.equal(report.results.summary.other, 1);
+		assert.equal(report.results.summary.other, 0);
 		assert.equal(report.results.summary.skipped, 1);
 		assert.equal(report.results.summary.pending, 1);
 		assert.equal(report.results.summary.failed, 1);
@@ -372,7 +311,7 @@ test("reporting / Node adapter retains skips, TODOs and failures without duplica
 	}
 });
 
-test("reporting / groups contract categories and isolates expected failures", () => {
+test("reporting / groups contract categories without retired exceptions", () => {
 	const name =
 		"conformance/property/results.environment.buildNumber [expected failure: invalid-build-number]";
 	const report = createReport(
@@ -395,11 +334,11 @@ test("reporting / groups contract categories and isolates expected failures", ()
 		[
 			["Unit conformance", "Schema properties"],
 			["Unit conformance", "Specification relationships"],
-			["Unit conformance", "Expected failures (tracked defects)"],
+			["Unit conformance", "Schema properties"],
 			["Unit conformance", "Runner/setup failures"],
 		],
 	);
-	assert.equal(report.results.summary.other, 1);
+	assert.equal(report.results.summary.other, 0);
 	assert.equal(report.results.summary.skipped, 1);
 	assert.equal(report.results.summary.failed, 1);
 });
