@@ -77,8 +77,13 @@ export function expectedReport(native, options = {}, actions = []) {
 	);
 	const environment = Object.fromEntries(
 		Object.keys(configuredOptions)
-			.filter((k) => k !== "runId" && options[k] !== undefined)
-			.map((k) => [k, k === "buildNumber" ? Number(options[k]) : options[k]]),
+			.filter(
+				(k) =>
+					k !== "runId" &&
+					options[k] !== undefined &&
+					(k !== "buildNumber" || Number.isInteger(options[k])),
+			)
+			.map((k) => [k, options[k]]),
 	);
 	const summary = {
 		tests: native.run.totalTests,
