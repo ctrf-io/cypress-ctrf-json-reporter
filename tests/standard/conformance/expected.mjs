@@ -95,7 +95,7 @@ export function expectedReport(native, options = {}, actions = []) {
 	};
 	return {
 		reportFormat: "CTRF",
-		specVersion: "0.2.0",
+		specVersion: "0.3.0",
 		generatedBy: "cypress-ctrf-json-reporter",
 		...(options.runId ? { runId: options.runId } : {}),
 		results: { tool: { name: "cypress" }, summary, tests, environment },
