@@ -15,7 +15,7 @@ const property = (path) =>
 function control() {
 	const report = {
 		reportFormat: "CTRF",
-		specVersion: "0.2.0",
+		specVersion: "0.3.0",
 		results: {
 			tool: { name: "control" },
 			summary: {
